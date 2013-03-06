@@ -134,3 +134,33 @@ module AWS
     end
   end
 end
+
+
+# The following monkey patch fixes a small bug in net http
+module Net #:nodoc:
+  class HTTP < Protocol
+    def transport_request(req)
+      begin_transport req
+      res = catch(:response) {
+        req.exec @socket, @curr_http_version, edit_path(req.path)
+        begin
+          res = HTTPResponse.read_new(@socket)
+        end while res.kind_of?(HTTPContinue)
+        # following 3 lines moved out of the catch block, see below
+        #res.reading_body(@socket, req.response_body_permitted?) {
+        #  yield res if block_given?
+        #}
+        res
+      }
+      res.reading_body(@socket, req.response_body_permitted?) {
+        yield res if block_given?
+      }
+      end_transport req, res
+      res
+    rescue => exception
+      D "Conn close because of error #{exception}"
+      @socket.close if @socket and not @socket.closed?
+      raise exception
+    end
+  end
+end

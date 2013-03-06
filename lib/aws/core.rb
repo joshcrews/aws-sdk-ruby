@@ -265,6 +265,19 @@ module AWS
     # @option options [String] :glacier_endpoint ('glacier.us-east-1.amazonaws.com')
     #   The service endpoint for Amazon Glacier.
     #
+    # @option options [Float] :http_continue_timeout (0) The number of
+    #   seconds to wait for a "100-continue" response before sending the request
+    #   body.  The +:http_continue_timeout+ option has no effect unless the
+    #   "expect" header on the request is set to "100-continue".  This only
+    #   happens if the request body exceedes the +:http_continue_threshold+
+    #   (in bytes).
+    #
+    # @option options [Integer] :http_continue_threshold (1048576) If a request
+    #   body exceedes the +:http_continue_threshold+ size (in bytes), then
+    #   it will set the "expect" header to "100-continue".  The deafault
+    #   threshold is 1 MB.  The "expect" header will also only be set
+    #   if the +:http_continue_timeout+ is set to a positive number of seconds.
+    #
     # @option options [Object] :http_handler (AWS::Core::Http::NetHttpHandler)
     #   The http handler that sends requests to AWS.
     #

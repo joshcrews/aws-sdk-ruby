@@ -512,6 +512,8 @@ module AWS
         # configure the http request
         http_request.service_ruby_name = service_ruby_name
         http_request.default_read_timeout = http_read_timeout
+        http_request.continue_timeout = @config.http_continue_timeout
+        http_request.continue_threshold = @config.http_continue_threshold
         http_request.host = endpoint
         http_request.port = port
         http_request.region = config.send(:"#{service_ruby_name}_region")

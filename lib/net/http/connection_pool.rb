@@ -170,6 +170,7 @@ class Net::HTTP::ConnectionPool
   def request connection, *args, &block
     session_for(connection) do |session|
       session.read_timeout = connection.read_timeout
+      session.continue_timeout = connection.continue_timeout
       session.request(*args, &block)
     end
   end

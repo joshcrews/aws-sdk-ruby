@@ -62,6 +62,7 @@ module AWS
 
             connection = pool.connection_for(request.host, options)
             connection.read_timeout = request.read_timeout
+            connection.continue_timeout = request.continue_timeout
 
             connection.request(build_net_http_request(request)) do |http_resp|
               response.status = http_resp.code.to_i
@@ -102,6 +103,13 @@ module AWS
           headers = { 'content-type' => '' }
           request.headers.each_pair do |key,value|
             headers[key] = value.to_s
+          end
+
+          if
+            headers['content-length'] and
+            headers['content-length'].to_i > request.continue_threshold
+          then
+            headers['expect'] = '100-continue'
           end
 
           request_class = case request.http_method

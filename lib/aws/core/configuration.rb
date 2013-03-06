@@ -108,6 +108,19 @@ module AWS
     # @attr_reader [String] glacier_endpoint ('glacier.us-east-1.amazonaws.com')
     #   The service endpoint for Amazon Glacier.
     #
+    # @attr_reader [Float] http_continue_timeout (0) The number of
+    #   seconds to wait for a "100-continue" response before sending the request
+    #   body.  The +:http_continue_timeout+ option has no effect unless the
+    #   "expect" header on the request is set to "100-continue".  This only
+    #   happens if the request body exceedes the {#http_continue_threshold}
+    #   (in bytes).
+    #
+    # @attr_reader [Integer] http_continue_threshold (1048576) If a request
+    #   body exceedes the {#http_continue_threshold} size (in bytes), then
+    #   it will set the "expect" header to "100-continue".  The deafault
+    #   threshold is 1 MB.  The "expect" header will also only be set
+    #   if the +:http_continue_timeout+ is set to a positive number of seconds.
+    #
     # @attr_reader [Object] http_handler The http handler that sends requests
     #   to AWS.  Defaults to an HTTP handler built on net/http.
     #
@@ -458,6 +471,8 @@ module AWS
             :credential_provider,
             :http_handler,
             :http_read_timeout,
+            :http_continue_timeout,
+            :http_continue_threshold,
             :log_formatter,
             :log_level,
             :logger,
@@ -497,6 +512,10 @@ module AWS
       add_option :http_open_timeout, 15
 
       add_option :http_read_timeout, 60
+
+      add_option :http_continue_timeout, 0
+
+      add_option :http_continue_threshold, 1048576
 
       add_option :http_idle_timeout, 60
 

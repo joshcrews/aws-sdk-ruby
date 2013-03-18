@@ -265,18 +265,21 @@ module AWS
     # @option options [String] :glacier_endpoint ('glacier.us-east-1.amazonaws.com')
     #   The service endpoint for Amazon Glacier.
     #
-    # @option options [Float] :http_continue_timeout (0) The number of
+    # @option options [Float] :http_continue_timeout (1) The number of
     #   seconds to wait for a "100-continue" response before sending the request
-    #   body.  The +:http_continue_timeout+ option has no effect unless the
-    #   "expect" header on the request is set to "100-continue".  This only
-    #   happens if the request body exceedes the +:http_continue_threshold+
-    #   (in bytes).
+    #   body.  The +:http_continue_timeout+ option has no effect unless
+    #   The +:http_continue_threshold+ is set to a positive integer.
     #
-    # @option options [Integer] :http_continue_threshold (1048576) If a request
-    #   body exceedes the +:http_continue_threshold+ size (in bytes), then
-    #   it will set the "expect" header to "100-continue".  The deafault
-    #   threshold is 1 MB.  The "expect" header will also only be set
-    #   if the +:http_continue_timeout+ is set to a positive number of seconds.
+    # @option options [Integer,false] :http_continue_threshold (false) If a request
+    #   body exceedes the {#http_continue_threshold} size (in bytes), then
+    #   an "Expect" header will be added to the request with the value of
+    #   "100-continue".  This will cause the SDK to wait up to
+    #   {#http_continue_timeout} seconds for a 100 Contiue HTTP response
+    #   before sending the request payload.  By default, this feature
+    #   is disbled.  Set this option to a positive number of bytes
+    #   to enable 100 continues.  NOTE: currently there is a bug in Net::HTTP.
+    #   You must call {AWS.patch_net_http_100_continue!} for this feature to work.
+    #   Not supported in Ruby < 1.9.
     #
     # @option options [Object] :http_handler (AWS::Core::Http::NetHttpHandler)
     #   The http handler that sends requests to AWS.
@@ -593,6 +596,14 @@ module AWS
     # @return [nil]
     def stub!
       config(:stub_requests => true)
+      nil
+    end
+
+    # Patches Net::HTTP, fixing a bug in how it handles non 100-continue
+    # responses while waiting for a 100-continue.
+    def patch_net_http_100_continue!
+      require 'net/http/connection_pool'
+      Net::HTTP.patch_net_http_100_continue!
       nil
     end
 

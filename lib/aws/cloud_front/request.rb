@@ -16,12 +16,15 @@ require 'time'
 module AWS
   class CloudFront
 
-    # @private
+    # @api private
     class Request < Core::Http::Request
 
       def add_authorization! credentials
 
         self.access_key_id = credentials.access_key_id
+
+        headers['x-amz-security-token'] = credentials.session_token if
+          credentials.session_token
 
         auth = "AWS #{access_key_id}:#{signature(credentials)}"
         headers['authorization'] = auth

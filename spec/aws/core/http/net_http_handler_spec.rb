@@ -18,21 +18,22 @@ require 'timeout'
 module AWS::Core::Http
   describe NetHttpHandler do
 
-    let(:handler) { described_class.new }
+    let(:handler_opts) {{}}
+
+    let(:handler) { described_class.new(handler_opts) }
 
     let(:request) {
       double('aws-request',
         :http_method => 'POST',
-        :host => 'host.com',
-        :port => '443',
+        :endpoint => 'https://host.com',
         :uri => '/path?querystring',
         :body_stream => StringIO.new('body'),
-        :proxy_uri => nil,
         :use_ssl? => true,
         :ssl_verify_peer? => true,
         :ssl_ca_file => '/ssl/ca',
         :ssl_ca_path => nil,
         :read_timeout => 60,
+        :continue_timeout => 1,
         :headers => { 'foo' => 'bar' })
     }
 
@@ -59,9 +60,8 @@ module AWS::Core::Http
     context 'http session' do
 
       it 'connects to the request host' do
-        request.stub(:host).and_return('hostname.com')
         Net::HTTP.should_receive(:new).
-          with('hostname.com', anything).
+          with('host.com', anything).
           and_return(http)
         handle!
       end
@@ -80,7 +80,7 @@ module AWS::Core::Http
       it 'passes proxy information to the session' do
 
         p = URI.parse('https://user:pass@proxy.com:443/path?query')
-        request.stub(:proxy_uri).and_return(p)
+        handler_opts[:proxy_uri] = p
 
         Net::HTTP.should_receive(:new).
           with(anything, anything, p.host, p.port, p.user, p.password).
@@ -96,11 +96,13 @@ module AWS::Core::Http
 
       it 'enables ssl on the http session when the request is ssl' do
 
-        request.stub(:use_ssl?).and_return(true)
+        handler_opts[:use_ssl] = true
+        handler_opts[:ssl_ca_file] = 'ca-file'
+        handler_opts[:ssl_verify_peer] = true
 
         http.should_receive(:use_ssl=).with(true)
         http.should_receive(:verify_mode=).with(OpenSSL::SSL::VERIFY_PEER)
-        http.should_receive(:ca_file=).with(request.ssl_ca_file)
+        http.should_receive(:ca_file=).with('ca-file')
 
         handle!
 
@@ -108,8 +110,8 @@ module AWS::Core::Http
 
       it 'enables ssl but not verification when verify peer is false' do
 
-        request.stub(:use_ssl?).and_return(true)
-        request.stub(:ssl_verify_peer?).and_return(false)
+        handler_opts[:use_ssl] = true
+        handler_opts[:ssl_verify_peer] = false
 
         http.should_receive(:use_ssl=).with(true)
         http.should_receive(:verify_mode=).with(OpenSSL::SSL::VERIFY_NONE)
@@ -119,13 +121,9 @@ module AWS::Core::Http
       end
 
       it 'disnables ssl on the http session when the request is not ssl' do
-
-        request.stub(:use_ssl?).and_return(false)
-
+        request.stub(:endpoint).and_return('http://host.com')
         http.should_receive(:use_ssl=).with(false)
-
         handle!
-
       end
 
     end
@@ -139,7 +137,7 @@ module AWS::Core::Http
         http_request = double('http-request')
 
         Net::HTTP::Get.should_receive(:new).
-          with(request.uri, request.headers.merge('content-type' => '')).
+          with(request.uri, request.headers.merge('content-type' => '', 'accept-encoding' => '')).
           and_return(http_request)
 
         http_request.should_receive(:body_stream=).with(request.body_stream)

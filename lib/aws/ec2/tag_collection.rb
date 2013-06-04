@@ -28,12 +28,12 @@ module AWS
 
       include TaggedItem
 
-      # @private
+      # @api private
       def tagging_resource_type
         @resource_type
       end
 
-      # @private
+      # @api private
       # We don't know how to make a describe call for this object yet
       def cached_tags; nil; end
 
@@ -55,7 +55,7 @@ module AWS
       # @param [Object] resource The item to tag.  This should be a taggable
       #   EC2 resource, like an instance, security group, etc.
       # @param [String] key The tag key (or name).
-      # @param [Hash] options 
+      # @param [Hash] options
       # @option optins [String] :value ('') The optional tag value.  When
       #   left blank its assigned the empty string.
       # @return [Tag]
@@ -96,7 +96,7 @@ module AWS
         nil
       end
 
-      # @private
+      # @api private
       protected
       def member_class
         Tag

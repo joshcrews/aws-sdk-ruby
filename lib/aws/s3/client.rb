@@ -29,11 +29,9 @@ module AWS
 
       XMLNS = "http://s3.amazonaws.com/doc/#{API_VERSION}/"
 
-      AWS.register_autoloads(self) do
-        autoload :XML, 'xml'
-      end
+      autoload :XML, 'aws/s3/client/xml'
 
-      # @private
+      # @api private
       EMPTY_BODY_ERRORS = {
         304 => Errors::NotModified,
         403 => Errors::Forbidden,
@@ -41,7 +39,7 @@ module AWS
         404 => Errors::NoSuchKey,
       }
 
-      # @private
+      # @api private
       CACHEABLE_REQUESTS = Set[]
 
       include DataOptions
@@ -161,7 +159,6 @@ module AWS
       bucket_method(:put_bucket_website, :put, 'website') do
 
         configure_request do |req, options|
-          validate_bucket_name!(options[:bucket_name])
           req.body = Nokogiri::XML::Builder.new do |xml|
             xml.WebsiteConfiguration(:xmlns => XMLNS) do
 
@@ -221,10 +218,10 @@ module AWS
       #   @param [Hash] options
       #   @option options [required,String] :bucket_name
       #   @return [Core::Response]
-      #     * +:index_document+ - (Hash)
-      #       * +:suffix+ - (String)
-      #     * +:error_document+ - (Hash)
-      #       * +:key+ - (String)
+      #     * `:index_document` - (Hash)
+      #       * `:suffix` - (String)
+      #     * `:error_document` - (Hash)
+      #       * `:key` - (String)
       bucket_method(:get_bucket_website, :get, 'website', XML::GetBucketWebsite)
 
       # @overload delete_bucket_website(options = {})
@@ -292,16 +289,16 @@ module AWS
       #   @param [Hash] options
       #   @option options [required,String] :bucket_name
       #   @option options [required,Array<Hash>] :rules An array of rule hashes.
-      #     * +:id+ - (String) A unique identifier for the rule. The ID
+      #     * `:id` - (String) A unique identifier for the rule. The ID
       #       value can be up to 255 characters long. The IDs help you find
       #       a rule in the configuration.
-      #     * +:allowed_methods+ - (required,Array<String>) A list of HTTP
+      #     * `:allowed_methods` - (required,Array<String>) A list of HTTP
       #       methods that you want to allow the origin to execute.
       #       Each rule must identify at least one method.
-      #     * +:allowed_origins+ - (required,Array<String>) A list of origins
+      #     * `:allowed_origins` - (required,Array<String>) A list of origins
       #       you want to allow cross-domain requests from. This can
       #       contain at most one * wild character.
-      #     * +:allowed_headers+ - (Array<String>) A list of headers allowed
+      #     * `:allowed_headers` - (Array<String>) A list of headers allowed
       #       in a pre-flight OPTIONS request via the
       #       Access-Control-Request-Headers header. Each header name
       #       specified in the Access-Control-Request-Headers header must
@@ -309,10 +306,10 @@ module AWS
       #       Amazon S3 will send only the allowed headers in a response
       #       that were requested. This can contain at most one * wild
       #       character.
-      #     * +:max_age_seconds+ - (Integer) The time in seconds that your
+      #     * `:max_age_seconds` - (Integer) The time in seconds that your
       #       browser is to cache the preflight response for the specified
       #       resource.
-      #     * +:expose_headers+ - (Array<String>) One or more headers in
+      #     * `:expose_headers` - (Array<String>) One or more headers in
       #       the response that you want customers to be able to access
       #       from their applications (for example, from a JavaScript
       #       XMLHttpRequest object).
@@ -472,7 +469,7 @@ module AWS
       #   @param [Hash] options
       #   @option options [required,String] :bucket_name
       #   @option options [required,String] :policy This can be a String
-      #     or any object that responds to +#to_json+.
+      #     or any object that responds to `#to_json`.
       #   @return [Core::Response]
       bucket_method(:set_bucket_policy, :put, 'policy') do
 
@@ -586,9 +583,9 @@ module AWS
       # Sets the access control list for a bucket.  You must specify an ACL
       # via one of the following methods:
       #
-      # * as a canned ACL (via +:acl+)
-      # * as a list of grants (via the +:grant_*+ options)
-      # * as an access control policy document (via +:access_control_policy+)
+      # * as a canned ACL (via `:acl`)
+      # * as a list of grants (via the `:grant_*` options)
+      # * as an access control policy document (via `:access_control_policy`)
       #
       # @example Using a canned acl
       #   s3_client.put_bucket_acl(
@@ -675,9 +672,9 @@ module AWS
       # Sets the access control list for an object.  You must specify an ACL
       # via one of the following methods:
       #
-      # * as a canned ACL (via +:acl+)
-      # * as a list of grants (via the +:grant_*+ options)
-      # * as an access control policy document (via +:access_control_policy+)
+      # * as a canned ACL (via `:acl`)
+      # * as a list of grants (via the `:grant_*` options)
+      # * as an access control policy document (via `:access_control_policy`)
       #
       # @example Using a canned acl
       #   s3_client.put_object_acl(
@@ -774,33 +771,6 @@ module AWS
       #     :data => 'This is the readme for ...',
       #   })
       #
-      # == Block Form
-      #
-      # In block form, this method yields a stream to the block that
-      # accepts data chunks.  For example:
-      #
-      #   s3_client.put_object(
-      #     :bucket_name => 'mybucket',
-      #     :key => 'some/key'
-      #     :content_length => File.size('myfile')
-      #   ) do |buffer|
-      #
-      #     File.open('myfile') do |io|
-      #       buffer.write(io.read(length)) until io.eof?
-      #     end
-      #
-      #   end
-      #
-      # This form is useful if you need finer control over how
-      # potentially large amounts of data are read from another
-      # source before being sent to S3; for example, if you are
-      # using a non-blocking IO model and reading from a large file
-      # on disk or from another network stream.  Some HTTP handlers
-      # do not support streaming request bodies, so if you plan to
-      # upload large objects using this interface you should make
-      # sure the HTTP handler you configure for the client meets
-      # your needs.
-      #
       # @overload put_object(options = {})
       #   @param [Hash] options
       #   @option options [required,String] :bucket_name
@@ -808,24 +778,24 @@ module AWS
       #   @option options [required,String,Pathname,File,IO] :data
       #     The data to upload.  This can be provided as a string,
       #     a Pathname object, or any object that responds to
-      #     +#read+ and +#eof?+ (e.g. IO, File, Tempfile, StringIO, etc).
+      #     `#read` and `#eof?` (e.g. IO, File, Tempfile, StringIO, etc).
       #   @option options [Integer] :content_length
       #     Required if you are using block form to write data or if it is
-      #     not possible to determine the size of +:data+.  A best effort
+      #     not possible to determine the size of `:data`.  A best effort
       #     is made to determine the content length of strings, files,
       #     tempfiles, io objects, and any object that responds
-      #     to +#length+ or +#size+.
+      #     to `#length` or `#size`.
       #   @option options [String] :website_redirect_location If the bucket is
       #     configured as a website, redirects requests for this object to
       #     another object in the same bucket or to an external URL.
       #   @option options [Hash] :metadata
       #     A hash of metadata to be included with the
       #     object.  These will be sent to S3 as headers prefixed with
-      #     +x-amz-meta+.
+      #     `x-amz-meta`.
       #   @option options [Symbol] :acl (:private) A canned access
       #     control policy.  Accepted values include:
-      #     * +:private+
-      #     * +:public_read+
+      #     * `:private`
+      #     * `:public_read`
       #     * ...
       #   @option options [String] :storage_class+ ('STANDARD')
       #     Controls whether Reduced Redundancy Storage is enabled for
@@ -834,7 +804,7 @@ module AWS
       #   @option options [Symbol,String] :server_side_encryption (nil) The
       #     algorithm used to encrypt the object on the server side
       #     (e.g. :aes256).
-      #   object on the server side, e.g. +:aes256+)
+      #   object on the server side, e.g. `:aes256`)
       #   @option options [String] :cache_control
       #     Can be used to specify caching behavior.
       #   @option options [String] :content_disposition
@@ -842,7 +812,7 @@ module AWS
       #   @option options [String] :content_encoding
       #     Specifies the content encoding.
       #   @option options [String] :content_md5
-      #     The base64 encoded content md5 of the +:data+.
+      #     The base64 encoded content md5 of the `:data`.
       #   @option options [String] :content_type
       #     Specifies the content type.
       #   @option options [String] :expires The date and time at which the
@@ -903,25 +873,25 @@ module AWS
       #   @option options [required,String] :bucket_name
       #   @option options [required,String] :key
       #   @option options [Time] :if_modified_since If specified, the
-      #     response will contain an additional +:modified+ value that
+      #     response will contain an additional `:modified` value that
       #     returns true if the object was modified after the given
-      #     time.  If +:modified+ is false, then the response
-      #     +:data+ value will be +nil+.
+      #     time.  If `:modified` is false, then the response
+      #     `:data` value will be `nil`.
       #   @option options [Time] :if_unmodified_since If specified, the
-      #     response will contain an additional +:unmodified+ value
+      #     response will contain an additional `:unmodified` value
       #     that is true if the object was not modified after the
-      #     given time.  If +:unmodified+ returns false, the +:data+
-      #     value will be +nil+.
+      #     given time.  If `:unmodified` returns false, the `:data`
+      #     value will be `nil`.
       #   @option options [String] :if_match If specified, the response
-      #     will contain an additional +:matches+ value that is true
+      #     will contain an additional `:matches` value that is true
       #     if the object ETag matches the value for this option.  If
-      #     +:matches+ is false, the +:data+ value of the
-      #     response will be +nil+.
+      #     `:matches` is false, the `:data` value of the
+      #     response will be `nil`.
       #   @option options [String] :if_none_match If specified, the
-      #     response will contain an additional +:matches+ value that
+      #     response will contain an additional `:matches` value that
       #     is true if and only if the object ETag matches the value for
-      #     this option.  If +:matches+ is true, the +:data+ value
-      #     of the response will be +nil+.
+      #     this option.  If `:matches` is true, the `:data` value
+      #     of the response will be `nil`.
       #   @option options [Range<Integer>] :range A byte range of data to request.
       #   @return [Core::Response]
       #
@@ -1150,31 +1120,34 @@ module AWS
       # @overload delete_objects(options = {})
       #   @param [Hash] options
       #   @option options [required,String] :bucket_name
-      #   @option options [required,Array<String>] :keys
+      #   @option options [required,Array<Hash>] :objects Each entry should be
+      #     a hash with the following keys:
+      #     * `:key` - *required*
+      #     * `:version_id`
       #   @option options [Boolean] :quiet (true)
       #   @option options [String] :mfa
       #   @return [Core::Response]
-      bucket_method(:delete_objects, :post, 'delete', XML::DeleteObjects, :header_options => { :mfa => "x-amz-mfa" }) do
+      bucket_method(:delete_objects, :post, 'delete', XML::DeleteObjects,
+        :header_options => { :mfa => "x-amz-mfa" }
+      ) do
+
         configure_request do |req, options|
 
           super(req, options)
 
-          quiet = options.key?(:quiet) ? options[:quiet] : true
+          req.body = Nokogiri::XML::Builder.new do |xml|
+            xml.Delete do
+              xml.Quiet(options.key?(:quiet) ? options[:quiet] : true)
+              (options[:objects] || options[:keys]).each do |obj|
+                xml.Object do
+                  xml.Key(obj[:key])
+                  xml.VersionId(obj[:version_id]) if obj[:version_id]
+                end
+              end
+            end
+          end.doc.root.to_xml
 
-          # previously named this option :objects, since renamed
-          keys = options[:objects] || options[:keys]
-
-          objects = keys.inject('') do |xml,o|
-            xml << "<Object><Key>#{REXML::Text.normalize(o[:key])}</Key>"
-            xml << "<VersionId>#{o[:version_id]}</VersionId>" if o[:version_id]
-            xml << "</Object>"
-          end
-
-          xml = '<?xml version="1.0" encoding="UTF-8"?>'
-          xml << "<Delete><Quiet>#{quiet}</Quiet>#{objects}</Delete>"
-
-          req.body = xml
-          req.headers['content-md5'] = md5(xml)
+          req.headers['content-md5'] = md5(req.body)
 
         end
       end
@@ -1188,7 +1161,7 @@ module AWS
       #   @option options [required,String,Pathname,File,IO] :data
       #     The data to upload.  This can be provided as a string,
       #     a Pathname object, or any object that responds to
-      #     +#read+ and +#eof?+ (e.g. IO, File, Tempfile, StringIO, etc).
+      #     `#read` and `#eof?` (e.g. IO, File, Tempfile, StringIO, etc).
       #   @return [Core::Response]
       object_method(:upload_part, :put,
                     :header_options => {
@@ -1223,7 +1196,10 @@ module AWS
       #   @option options [required,String] :bucket_name
       #   @option options [required,String] :key
       #   @option options [required,String] :upload_id
-      #   @option options [required,Array<String>] :parts
+      #   @option options [required,Array<Hash>] :parts An array of hashes
+      #     with the following keys:
+      #     * `:part_number` [Integer] - *required*
+      #     * `:etag` [String] - *required*
       #   @return [Core::Response]
       object_method(:complete_multipart_upload, :post,
                     XML::CompleteMultipartUpload) do
@@ -1232,14 +1208,18 @@ module AWS
           validate_parts!(options[:parts])
           super(req, options)
           req.add_param('uploadId', options[:upload_id])
-          parts_xml = options[:parts].map do |part|
-            "<Part>"+
-              "<PartNumber>#{part[:part_number].to_i}</PartNumber>"+
-              "<ETag>#{REXML::Text.normalize(part[:etag].to_s)}</ETag>"+
-              "</Part>"
-          end.join
-          req.body =
-            "<CompleteMultipartUpload>#{parts_xml}</CompleteMultipartUpload>"
+
+          req.body = Nokogiri::XML::Builder.new do |xml|
+            xml.CompleteMultipartUpload do
+              options[:parts].each do |part|
+                xml.Part do
+                  xml.PartNumber(part[:part_number])
+                  xml.ETag(part[:etag])
+                end
+              end
+            end
+          end.doc.root.to_xml
+
         end
 
         process_response do |resp|
@@ -1357,6 +1337,39 @@ module AWS
 
       end
 
+      object_method(:copy_part, :put, XML::CopyPart, :header_options => {
+        :copy_source => 'x-amz-copy-source',
+        :copy_source_range => 'x-amz-copy-source-range',
+      }) do
+
+        configure_request do |request, options|
+
+          validate!(:copy_source, options[:copy_source]) do
+            "may not be blank" if options[:copy_source].to_s.empty?
+          end
+
+          validate!(:copy_source_range, options[:copy_source_range]) do
+            "must start with bytes=" if options[:copy_source_range] && !options[:copy_source_range].start_with?("bytes=")
+          end
+
+          options = options.merge(:copy_source => escape_path(options[:copy_source]))
+
+          require_upload_id!(options[:upload_id])
+          request.add_param('uploadId', options[:upload_id])
+
+          require_part_number!(options[:part_number])
+          request.add_param('partNumber', options[:part_number])
+
+          super(request, options)
+
+          if options[:version_id]
+            req.headers['x-amz-copy-source'] += "?versionId=#{options[:version_id]}"
+          end
+
+        end
+
+      end
+
       protected
 
       def extract_error_details response
@@ -1413,7 +1426,7 @@ module AWS
       end
 
       # @param [String] possible_xml
-      # @return [Boolean] Returns +true+ if the given string is a valid xml
+      # @return [Boolean] Returns `true` if the given string is a valid xml
       #   document.
       def is_xml? possible_xml
         begin
@@ -1425,6 +1438,15 @@ module AWS
 
       def md5 str
         Base64.encode64(Digest::MD5.digest(str)).strip
+      end
+
+      def parse_copy_part_response resp
+        doc = REXML::Document.new(resp.http_response.body)
+        resp[:etag] = doc.root.elements["ETag"].text
+        resp[:last_modified] = doc.root.elements["LastModified"].text
+        if header = resp.http_response.headers['x-amzn-requestid']
+          data[:request_id] = [header].flatten.first
+        end
       end
 
       def extract_object_headers resp
@@ -1466,6 +1488,7 @@ module AWS
           'content-type' => :content_type,
           'content-encoding' => :content_encoding,
           'cache-control' => :cache_control,
+          'expires' => :expires,
           'etag' => :etag,
           'x-amz-website-redirect-location' => :website_redirect_location,
           'accept-ranges' => :accept_ranges,
@@ -1496,16 +1519,16 @@ module AWS
           validate_bucket_name!(bucket_name) rescue false
         end
 
-        # Returns true if the given +bucket_name+ is DNS compatible.
+        # Returns true if the given `bucket_name` is DNS compatible.
         #
         # DNS compatible bucket names may be accessed like:
         #
-        #   http://dns.compat.bucket.name.s3.amazonaws.com/
+        #     http://dns.compat.bucket.name.s3.amazonaws.com/
         #
         # Whereas non-dns compatible bucket names must place the bucket
         # name in the url path, like:
         #
-        #   http://s3.amazonaws.com/dns_incompat_bucket_name/
+        #     http://s3.amazonaws.com/dns_incompat_bucket_name/
         #
         # @return [Boolean] Returns true if the given bucket name may be
         #   is dns compatible.
@@ -1515,14 +1538,15 @@ module AWS
           return false if
             !valid_bucket_name?(bucket_name) or
 
-            # Bucket names should not contain underscores (_)
-            bucket_name["_"] or
-
             # Bucket names should be between 3 and 63 characters long
             bucket_name.size > 63 or
 
-            # Bucket names should not end with a dash
-            bucket_name[-1,1] == '-' or
+            # Bucket names must only contain lowercase letters, numbers, dots, and dashes
+            # and must start and end with a lowercase letter or a number
+            bucket_name !~ /^[a-z0-9][a-z0-9.-]+[a-z0-9]$/ or
+
+            # Bucket names should not be formatted like an IP address (e.g., 192.168.5.4)
+            bucket_name =~ /(\d+\.){3}\d+/ or
 
             # Bucket names cannot contain two, adjacent periods
             bucket_name['..'] or
@@ -1585,15 +1609,11 @@ module AWS
             case
             when bucket_name.nil? || bucket_name == ''
               'may not be blank'
-            when bucket_name !~ /^[a-z0-9._\-]+$/
-              'may only contain lowercase letters, numbers, periods (.), ' +
+            when bucket_name !~ /^[A-Za-z0-9._\-]+$/
+              'may only contain uppercase letters, lowercase letters, numbers, periods (.), ' +
               'underscores (_), and dashes (-)'
-            when bucket_name !~ /^[a-z0-9]/
-              'must start with a letter or a number'
             when !(3..255).include?(bucket_name.size)
               'must be between 3 and 255 characters long'
-            when bucket_name =~ /(\d+\.){3}\d+/
-              'must not be formatted like an IP address (e.g., 192.168.5.4)'
             when bucket_name =~ /\n/
               'must not contain a newline character'
             end

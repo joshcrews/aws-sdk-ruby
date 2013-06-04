@@ -1,3 +1,1580 @@
+2013-05-28 Alex Slynko <alex.slynko@wonga.com>
+
+  * lib/aws/ec2/instance_collection.rb: Fix example for instance collection to
+  correspond documentation
+
+2013-05-24 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/option_grammar.rb: Fixed a spelling error.
+
+2013-05-23 Trevor Rowe <trevorrowe@gmail.com>
+
+  * features/cloud_search/client.feature,
+  features/cloud_search/step_definitions/client.rb,
+  features/cloud_search/step_definitions/cloud_search.rb,
+  features/sqs/queues.feature, features/sqs/step_definitions/queues.rb,
+  lib/aws/api_config/SQS-2012-11-05.yml, lib/aws/core/option_grammar.rb: Added
+  support for non-flattened maps for query requests.
+
+  * features/direct_connect/client.feature: Removed a superfluous tag.
+
+2013-05-16 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/rds/request.rb: Moved AWS::RDS to signature version 4.
+
+2013-05-15 Trevor Rowe <trevorrowe@gmail.com>
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.10.0
+
+  * lib/aws/api_config/ElasticTranscoder-2012-09-25.yml,
+  lib/aws/elastic_transcoder/client.rb: AWS Elastic Transcoder update.
+
+2013-05-14 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/api_config/OpsWorks-2013-02-18.yml, lib/aws/ops_works/client.rb:
+  Added support for ELBs to AWS::OpsWorks::Client
+
+  * lib/aws/api_config/DynamoDB-2012-08-10.yml,
+  lib/aws/dynamo_db/client_v2.rb: Added parallel scan to
+  AWS::DynamoDB::Client#scan
+
+  * features/s3/high_level/multipart_copy.feature: Reformatted whitespace in
+  test scenario.
+
+  * features/s3/high_level/multipart_copy.feature,
+  features/s3/high_level/step_definitions/multipart_copy.rb: Renamed a test
+  step definition for clarity.
+
+  * features/s3/high_level/multipart_copy.feature,
+  features/s3/high_level/step_definitions/multipart_copy.rb,
+  lib/aws/s3/s3_object.rb: Added integration tests for multipart copy.
+
+  References #187
+
+  * lib/aws/api_config/EC2-2013-02-01.yml: Fixed an issue in
+  RequestSpotInstances
+
+  Fixes #248
+
+2013-05-13 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core.rb: Fixed an issue with service-specific configuration
+  options.
+
+  Resolved an issue where service-specific configuration options
+  where not getting defined until the service class was autoloaded.
+  For example:
+
+      require 'aws-sdk'
+      AWS.config(:dynamo_db_crc_32_check => false) # oops, wont apply
+
+      AWS::DynamoDB # autoload dynamo db service interface
+
+      AWS.config(:dynamo_db_crc_32_check => false) # now it works
+
+  All service configurations are loaded up front now.
+
+  References #243
+
+  * features/s3/high_level/step_definitions/urls.rb,
+  features/s3/high_level/urls.feature, lib/aws/s3/s3_object.rb: Added support
+  for :content_type and :content_md5 to AWS:S3::S3Object#url_for.
+
+  The S3 signature requries the content-md5 and content-type headers to be
+  signed.  The #url_for helper method previously did not accept these two
+  values and therefore was only good for requests where these values
+  were not specified.
+
+  You can now specify them like so:
+
+      s3.buckets['bucket-name'].objects['key'].url_for(:write, {
+        # both of these are optional
+        :content_type => 'text/plain',
+        :content_md5 => '...',
+      })
+
+  Fixes #207
+
+  * lib/aws/ec2/security_group.rb: Fixed documentation typo.
+2013-05-09 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/configuration.rb, spec/aws/core/configuration_spec.rb,
+  spec/spec_helper.rb: Added support for configuring region via
+  ENV['AWS_REGION'].
+
+  * lib/aws/s3/client.rb: Removed documentation for deprecated interface for
+  AWS::S3::Client#put_object.
+
+  * lib/aws/ec2.rb, lib/aws/ec2/instance.rb, lib/aws/s3.rb,
+  lib/aws/s3/s3_object.rb: Updated documentation examples to open files in
+  binary mode.
+
+2013-05-07 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/s3/multipart_upload.rb, lib/aws/s3/uploaded_part.rb,
+  lib/aws/s3/uploaded_part_collection.rb,
+  spec/aws/s3/multipart_upload_spec.rb,
+  spec/aws/s3/uploaded_part_collection_spec.rb: Fixed an issue multipart
+  uploads to S3 > 5GB.
+
+  Resolved an issue where `AWS::S3::MultipartUpload#complete` would only
+  send the first 1k parts in the request to complete the upload.  This
+  only happened when the `:remote_parts` flag was set.
+
+  * lib/aws/dynamo_db/client_v2.rb: Reverted changed to DynamoDBV2 client.
+
+  * lib/aws/ec2/instance.rb: Added documentation for
+  AWS::EC2::Instance#source_dest_check.
+
+  * lib/aws/auto_scaling/client.rb, lib/aws/cloud_formation/client.rb,
+  lib/aws/cloud_front/client.rb, lib/aws/cloud_search/client.rb,
+  lib/aws/cloud_watch/client.rb, lib/aws/data_pipeline/client.rb,
+  lib/aws/direct_connect/client.rb, lib/aws/dynamo_db/client.rb,
+  lib/aws/dynamo_db/client_v2.rb, lib/aws/ec2/client.rb,
+  lib/aws/elastic_beanstalk/client.rb, lib/aws/elastic_transcoder/client.rb,
+  lib/aws/elasticache/client.rb, lib/aws/elb/client.rb, lib/aws/emr/client.rb,
+  lib/aws/glacier/client.rb, lib/aws/iam/client.rb,
+  lib/aws/import_export/client.rb, lib/aws/ops_works/client.rb,
+  lib/aws/rds/client.rb, lib/aws/redshift/client.rb,
+  lib/aws/route_53/client.rb, lib/aws/simple_db/client.rb,
+  lib/aws/simple_email_service/client.rb, lib/aws/simple_workflow/client.rb,
+  lib/aws/sns/client.rb, lib/aws/sqs/client.rb,
+  lib/aws/storage_gateway/client.rb, lib/aws/sts/client.rb: Corrected an issue
+  with markdown structure in docs.
+
+  The client response method were not getting formatted
+  because the bulleted list was not spaced or indented.
+  Added a blank line to each client method to correct this.
+
+2013-05-06 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/s3/s3_object.rb: Fixed formatting for S3Object class-level docs.
+
+2013-05-01 Loren Segal <lsegal@amazon.com>
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.9.5
+
+  * lib/aws/support/client.rb: Fix documentation formatting
+
+  * README.md, endpoints.json, features/extra/common.rb,
+  features/support/client.feature, features/support/common.rb,
+  features/support/step_definitions/client.rb,
+  features/support/step_definitions/support.rb,
+  lib/aws/api_config/Support-2013-04-15.yml, lib/aws/core.rb,
+  lib/aws/support.rb, lib/aws/support/client.rb, lib/aws/support/config.rb,
+  lib/aws/support/errors.rb, lib/aws/support/request.rb: Add support for AWS
+  Support (AWS::Support)
+
+2013-04-30 Manuel Meurer <manuel.meurer@gmail.com>
+
+  * README.md: Add missing apostrophe
+
+2013-04-29 Trevor Rowe <trevorrowe@gmail.com>
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.9.3
+
+2013-04-28 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/route_53/hosted_zone_collection.rb,
+  spec/aws/route_53/hosted_zone_collection_spec.rb: Resolved an issue with
+  AWS::Route53::HostedZoneCollection#create.
+
+  The comment option was getting duplicated before getting
+  passed to the client create method.
+
+  Fixes #240
+
+2013-04-26 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/record.rb, lib/aws/record/exceptions.rb: Resolved an
+  eager_autoload! bug.
+
+  Fixes #237
+
+  * lib/aws/glacier/client.rb, lib/aws/glacier/request.rb: Removed
+  customizations from AWS::Glacier::Request.
+
+  * lib/aws/core/client.rb, lib/aws/sqs/client.rb, lib/aws/sqs/request.rb,
+  spec/aws/sqs/queue_spec.rb, spec/aws/sqs/received_message_spec.rb,
+  spec/aws/sqs/request_spec.rb: Removed customizations from AWS::SQS::Request.
+
+  This is the next step in removing service specific
+  hooks from the http request classes.
+
+2013-04-25 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/client.rb, lib/aws/core/http/request.rb,
+  lib/aws/simple_workflow/client.rb, lib/aws/simple_workflow/request.rb:
+  Simplified how http read timeouts are handled.
+
+  Deprecated #default_read_timeout on AWS::Core::Http::Request.
+  SWF is the only service that (currently) needs to modify
+  the read timeout (for long polling operations).  Now using
+  the #read_timeout attribute exclusively to deal with this.
+
+  * lib/aws/cloud_watch.rb: fix interface name in documentation
+
+2013-04-24 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core.rb, tasks/apis.rake: Added a rake task that lists the
+  supported API versions.
+
+  * aws-sdk.gemspec: Fixed the gemspec (was referencing README.rdoc which is
+  now README.md).
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.9.2
+
+  * lib/aws/core/deprecations.rb: Deprecated methods now only issue a single
+  warning instead of one per call.
+
+  * lib/aws/ec2/subnet.rb: Fixed an issue with
+  AWS::EC2::Subnet#network_acl_association
+
+  The #network_acl_association had a bug that caused it to always
+  return the first association from the vpc the subnet belongs to.
+
+2013-04-23 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/client.rb: Deprecated AWS::Core::Client#http_read_timeout.
+
+  The #http_read_timeout is a property of the configuration
+  and is not consumed by the client.  It should instead
+  be retrieved from the client configuration is needed.
+  Example:
+
+      # given
+      ec2 = AWS::EC2::Client.new
+
+      # deprecated
+      ec2.http_read_timeout
+
+      # prefered
+      ec2.config.http_read_timeout
+
+  * lib/aws/core.rb, lib/aws/core/deprecations.rb: Added a module for marking
+  methods as deprecated.
+
+2013-04-22 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/elastic_beanstalk.rb, lib/aws/elastic_transcoder.rb,
+  spec/aws/core/region_spec.rb: Fixed a few test issues with the new service
+  shortcuts.
+
+  * lib/aws/core.rb, tasks/docs.rake: Added service shortcuts from AWS.
+
+  You can now create service interfaces directly from AWS like so:
+
+      ec2 = AWS.ec2
+
+  You can pass configuration options to this instance as well:
+
+      ec2 = AWS.ec2(:region => 'us-west-2')
+
+  Updated docs rake task to document these magic methods.
+
+  * README.md: Updated README examples.
+
+  * lib/aws/core.rb, tasks/docs.rake: Added additional rake tasks for updating
+  docs.
+
+  The API documentation contains lists of supported
+  services and service classes.  A pair of rake tasks
+  have been added that will update these lists when
+  docs are built to ensure they do not get stale.
+
+  * README.md, README.rdoc: Translated README from rdoc to markdown,
+  restructured content.
+
+2013-04-18 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws-sdk.rb, lib/aws/core.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/region.rb: DRY'd code that had to be done for each service.
+
+  * Registering autoloads for service interfaces
+  * Adding service helper methods to Region
+
+  * lib/aws/api_config/CloudFront-2012-05-05.yml,
+  lib/aws/api_config/ElastiCache-2012-03-09.yml,
+  lib/aws/api_config/RDS-2012-09-17.yml,
+  lib/aws/api_config/Route53-2012-02-29.yml: Removed some older/unused API
+  versions for four different services.
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.9.1
+
+  * lib/aws/core/http/connection_pool.rb,
+  lib/aws/core/http/net_http_handler.rb: Fixed a bug introduced in 1.9.0
+  related to http continue timeouts.
+
+  Ruby < 1.9.3 does not support setting the continue timeout on
+  a `Net::HTTP session`.  Now guarding that attribute assignment
+  with a `responds_to?` check.
+
+  Fixes #232
+
+  * .yardopts, Gemfile, lib/aws/auto_scaling/activity.rb,
+  lib/aws/auto_scaling/activity_collection.rb, lib/aws/auto_scaling/client.rb,
+  lib/aws/auto_scaling/group_options.rb, lib/aws/auto_scaling/instance.rb,
+  lib/aws/auto_scaling/launch_configuration.rb,
+  lib/aws/auto_scaling/notification_configuration.rb,
+  lib/aws/auto_scaling/notification_configuration_collection.rb,
+  lib/aws/auto_scaling/request.rb, lib/aws/auto_scaling/scaling_policy.rb,
+  lib/aws/auto_scaling/scaling_policy_options.rb,
+  lib/aws/auto_scaling/scheduled_action.rb,
+  lib/aws/auto_scaling/scheduled_action_collection.rb,
+  lib/aws/auto_scaling/tag.rb, lib/aws/auto_scaling/tag_collection.rb,
+  lib/aws/cloud_formation/client.rb, lib/aws/cloud_formation/request.rb,
+  lib/aws/cloud_formation/stack.rb,
+  lib/aws/cloud_formation/stack_collection.rb,
+  lib/aws/cloud_formation/stack_event.rb,
+  lib/aws/cloud_formation/stack_options.rb,
+  lib/aws/cloud_formation/stack_output.rb,
+  lib/aws/cloud_formation/stack_resource.rb,
+  lib/aws/cloud_formation/stack_summary_collection.rb,
+  lib/aws/cloud_front/client.rb, lib/aws/cloud_front/request.rb,
+  lib/aws/cloud_search/client.rb, lib/aws/cloud_search/request.rb,
+  lib/aws/cloud_watch/alarm.rb, lib/aws/cloud_watch/alarm_history_item.rb,
+  lib/aws/cloud_watch/alarm_history_item_collection.rb,
+  lib/aws/cloud_watch/client.rb,
+  lib/aws/cloud_watch/metric_alarm_collection.rb,
+  lib/aws/cloud_watch/metric_collection.rb, lib/aws/cloud_watch/request.rb,
+  lib/aws/core.rb, lib/aws/core/cacheable.rb, lib/aws/core/client.rb,
+  lib/aws/core/configuration.rb, lib/aws/core/credential_providers.rb,
+  lib/aws/core/data.rb, lib/aws/core/http/connection_pool.rb,
+  lib/aws/core/http/curb_handler.rb, lib/aws/core/http/handler.rb,
+  lib/aws/core/http/net_http_handler.rb, lib/aws/core/http/patch.rb,
+  lib/aws/core/http/request.rb, lib/aws/core/indifferent_hash.rb,
+  lib/aws/core/inflection.rb, lib/aws/core/json_parser.rb,
+  lib/aws/core/json_request_builder.rb, lib/aws/core/json_response_parser.rb,
+  lib/aws/core/lazy_error_classes.rb, lib/aws/core/log_formatter.rb,
+  lib/aws/core/managed_file.rb, lib/aws/core/meta_utils.rb,
+  lib/aws/core/model.rb, lib/aws/core/naming.rb,
+  lib/aws/core/option_grammar.rb, lib/aws/core/policy.rb,
+  lib/aws/core/query_error_parser.rb, lib/aws/core/query_request_builder.rb,
+  lib/aws/core/query_response_parser.rb, lib/aws/core/region_collection.rb,
+  lib/aws/core/resource.rb, lib/aws/core/resource_cache.rb,
+  lib/aws/core/response.rb, lib/aws/core/response_cache.rb,
+  lib/aws/core/rest_error_parser.rb, lib/aws/core/rest_request_builder.rb,
+  lib/aws/core/rest_response_parser.rb, lib/aws/core/service_interface.rb,
+  lib/aws/core/xml/frame_stack.rb, lib/aws/data_pipeline/client.rb,
+  lib/aws/data_pipeline/request.rb, lib/aws/direct_connect/client.rb,
+  lib/aws/direct_connect/errors.rb, lib/aws/direct_connect/request.rb,
+  lib/aws/dynamo_db/attribute_collection.rb, lib/aws/dynamo_db/item.rb,
+  lib/aws/dynamo_db/item_collection.rb, lib/aws/dynamo_db/keys.rb,
+  lib/aws/dynamo_db/request.rb, lib/aws/dynamo_db/resource.rb,
+  lib/aws/dynamo_db/table.rb, lib/aws/dynamo_db/table_collection.rb,
+  lib/aws/dynamo_db/types.rb, lib/aws/ec2/attachment.rb,
+  lib/aws/ec2/attachment_collection.rb,
+  lib/aws/ec2/availability_zone_collection.rb,
+  lib/aws/ec2/block_device_mappings.rb, lib/aws/ec2/client.rb,
+  lib/aws/ec2/config_transform.rb, lib/aws/ec2/customer_gateway.rb,
+  lib/aws/ec2/dhcp_options.rb, lib/aws/ec2/elastic_ip.rb,
+  lib/aws/ec2/errors.rb, lib/aws/ec2/export_task.rb,
+  lib/aws/ec2/filtered_collection.rb, lib/aws/ec2/image.rb,
+  lib/aws/ec2/image_collection.rb, lib/aws/ec2/instance.rb,
+  lib/aws/ec2/instance_collection.rb,
+  lib/aws/ec2/internet_gateway/attachment.rb,
+  lib/aws/ec2/key_pair_collection.rb, lib/aws/ec2/permission_collection.rb,
+  lib/aws/ec2/region_collection.rb, lib/aws/ec2/request.rb,
+  lib/aws/ec2/resource.rb, lib/aws/ec2/resource_tag_collection.rb,
+  lib/aws/ec2/route_table/association.rb, lib/aws/ec2/security_group.rb,
+  lib/aws/ec2/snapshot.rb, lib/aws/ec2/snapshot_collection.rb,
+  lib/aws/ec2/tag.rb, lib/aws/ec2/tag_collection.rb,
+  lib/aws/ec2/tagged_item.rb, lib/aws/ec2/volume.rb,
+  lib/aws/ec2/volume_collection.rb, lib/aws/ec2/vpn_connection.rb,
+  lib/aws/ec2/vpn_gateway/attachment.rb, lib/aws/elastic_beanstalk/client.rb,
+  lib/aws/elastic_beanstalk/request.rb, lib/aws/elastic_transcoder/client.rb,
+  lib/aws/elastic_transcoder/request.rb, lib/aws/elasticache/client.rb,
+  lib/aws/elasticache/request.rb, lib/aws/elb/client.rb,
+  lib/aws/elb/listener.rb, lib/aws/elb/listener_opts.rb,
+  lib/aws/elb/load_balancer_policy.rb, lib/aws/elb/request.rb,
+  lib/aws/emr/client.rb, lib/aws/emr/instance_group.rb,
+  lib/aws/emr/instance_group_collection.rb, lib/aws/emr/job_flow.rb,
+  lib/aws/emr/job_flow_collection.rb, lib/aws/emr/request.rb,
+  lib/aws/errors.rb, lib/aws/glacier/client.rb, lib/aws/glacier/request.rb,
+  lib/aws/glacier/resource.rb, lib/aws/iam.rb, lib/aws/iam/access_key.rb,
+  lib/aws/iam/access_key_collection.rb,
+  lib/aws/iam/account_alias_collection.rb, lib/aws/iam/client.rb,
+  lib/aws/iam/collection.rb, lib/aws/iam/group.rb,
+  lib/aws/iam/group_collection.rb, lib/aws/iam/group_policy_collection.rb,
+  lib/aws/iam/group_user_collection.rb, lib/aws/iam/login_profile.rb,
+  lib/aws/iam/mfa_device_collection.rb, lib/aws/iam/request.rb,
+  lib/aws/iam/resource.rb, lib/aws/iam/server_certificate.rb,
+  lib/aws/iam/server_certificate_collection.rb,
+  lib/aws/iam/signing_certificate.rb,
+  lib/aws/iam/signing_certificate_collection.rb, lib/aws/iam/user.rb,
+  lib/aws/iam/user_collection.rb, lib/aws/iam/user_group_collection.rb,
+  lib/aws/iam/user_policy.rb, lib/aws/iam/virtual_mfa_device.rb,
+  lib/aws/import_export/client.rb, lib/aws/import_export/request.rb,
+  lib/aws/ops_works/client.rb, lib/aws/ops_works/request.rb, lib/aws/rails.rb,
+  lib/aws/rds/client.rb, lib/aws/rds/db_snapshot_collection.rb,
+  lib/aws/rds/request.rb, lib/aws/record.rb, lib/aws/record/abstract_base.rb,
+  lib/aws/record/attributes.rb, lib/aws/record/conversion.rb,
+  lib/aws/record/dirty_tracking.rb, lib/aws/record/exceptions.rb,
+  lib/aws/record/hash_model.rb, lib/aws/record/model.rb,
+  lib/aws/record/model/scope.rb, lib/aws/record/naming.rb,
+  lib/aws/record/scope.rb, lib/aws/record/validations.rb,
+  lib/aws/record/validator.rb, lib/aws/record/validators/acceptance.rb,
+  lib/aws/record/validators/block.rb,
+  lib/aws/record/validators/confirmation.rb,
+  lib/aws/record/validators/count.rb, lib/aws/record/validators/exclusion.rb,
+  lib/aws/record/validators/format.rb, lib/aws/record/validators/inclusion.rb,
+  lib/aws/record/validators/length.rb, lib/aws/record/validators/method.rb,
+  lib/aws/record/validators/numericality.rb,
+  lib/aws/record/validators/presence.rb, lib/aws/redshift/client.rb,
+  lib/aws/redshift/request.rb, lib/aws/route_53/change_batch.rb,
+  lib/aws/route_53/change_info.rb, lib/aws/route_53/client.rb,
+  lib/aws/route_53/hosted_zone.rb, lib/aws/route_53/hosted_zone_collection.rb,
+  lib/aws/route_53/request.rb, lib/aws/route_53/resource_record_set.rb,
+  lib/aws/route_53/resource_record_set_collection.rb,
+  lib/aws/s3/access_control_list.rb, lib/aws/s3/acl_object.rb,
+  lib/aws/s3/acl_options.rb, lib/aws/s3/bucket.rb,
+  lib/aws/s3/bucket_collection.rb,
+  lib/aws/s3/bucket_lifecycle_configuration.rb,
+  lib/aws/s3/bucket_tag_collection.rb,
+  lib/aws/s3/bucket_version_collection.rb, lib/aws/s3/cipher_io.rb,
+  lib/aws/s3/client.rb, lib/aws/s3/client/xml.rb, lib/aws/s3/data_options.rb,
+  lib/aws/s3/encryption_utils.rb, lib/aws/s3/errors.rb,
+  lib/aws/s3/multipart_upload.rb, lib/aws/s3/multipart_upload_collection.rb,
+  lib/aws/s3/object_collection.rb, lib/aws/s3/object_upload_collection.rb,
+  lib/aws/s3/object_version.rb, lib/aws/s3/paginated_collection.rb,
+  lib/aws/s3/prefix_and_delimiter_collection.rb,
+  lib/aws/s3/prefixed_collection.rb, lib/aws/s3/presigned_post.rb,
+  lib/aws/s3/request.rb, lib/aws/s3/s3_object.rb,
+  lib/aws/s3/tree/branch_node.rb, lib/aws/s3/tree/child_collection.rb,
+  lib/aws/s3/tree/leaf_node.rb, lib/aws/s3/tree/node.rb,
+  lib/aws/s3/tree/parent.rb, lib/aws/s3/uploaded_part.rb,
+  lib/aws/s3/uploaded_part_collection.rb, lib/aws/s3/website_configuration.rb,
+  lib/aws/simple_db.rb, lib/aws/simple_db/attribute.rb,
+  lib/aws/simple_db/client.rb, lib/aws/simple_db/consistent_read_option.rb,
+  lib/aws/simple_db/delete_attributes.rb, lib/aws/simple_db/domain.rb,
+  lib/aws/simple_db/domain_metadata.rb, lib/aws/simple_db/errors.rb,
+  lib/aws/simple_db/expect_condition_option.rb,
+  lib/aws/simple_db/item_collection.rb, lib/aws/simple_db/item_data.rb,
+  lib/aws/simple_db/put_attributes.rb, lib/aws/simple_db/request.rb,
+  lib/aws/simple_email_service.rb, lib/aws/simple_email_service/client.rb,
+  lib/aws/simple_email_service/identity.rb,
+  lib/aws/simple_email_service/identity_collection.rb,
+  lib/aws/simple_email_service/quotas.rb,
+  lib/aws/simple_email_service/request.rb,
+  lib/aws/simple_workflow/activity_task.rb,
+  lib/aws/simple_workflow/activity_task_collection.rb,
+  lib/aws/simple_workflow/client.rb, lib/aws/simple_workflow/count.rb,
+  lib/aws/simple_workflow/decision_task.rb,
+  lib/aws/simple_workflow/decision_task_collection.rb,
+  lib/aws/simple_workflow/domain.rb, lib/aws/simple_workflow/history_event.rb,
+  lib/aws/simple_workflow/option_formatters.rb,
+  lib/aws/simple_workflow/request.rb, lib/aws/simple_workflow/resource.rb,
+  lib/aws/simple_workflow/type_collection.rb,
+  lib/aws/simple_workflow/workflow_execution_collection.rb,
+  lib/aws/sns/client.rb, lib/aws/sns/request.rb, lib/aws/sns/subscription.rb,
+  lib/aws/sns/topic.rb, lib/aws/sns/topic_subscription_collection.rb,
+  lib/aws/sqs/client.rb, lib/aws/sqs/errors.rb, lib/aws/sqs/queue.rb,
+  lib/aws/sqs/queue_collection.rb, lib/aws/sqs/received_message.rb,
+  lib/aws/sqs/request.rb, lib/aws/storage_gateway/client.rb,
+  lib/aws/storage_gateway/request.rb, lib/aws/sts/client.rb,
+  lib/aws/sts/federated_session.rb, lib/aws/sts/request.rb,
+  lib/aws/sts/session.rb: Switched from yard @private tags to @api private
+  tags.
+
+2013-04-17 Loren Segal <lsegal@amazon.com>
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.9.0
+
+2013-04-05 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/api_config/DynamoDB-2012-08-10.yml, lib/aws/core/client.rb,
+  lib/aws/dynamo_db.rb, lib/aws/dynamo_db/client.rb,
+  lib/aws/dynamo_db/client_base.rb, lib/aws/dynamo_db/client_v2.rb: Added a
+  second client to AWS::DyanmoDB to support the new API version.
+
+  * lib/aws/core.rb: Added a few missing services to the list of supported AWS
+  services in the API documentation.
+
+  * lib/aws/core.rb: Added a few missing services to the list of supported AWS
+  services in the API documentation.
+
+2013-04-16 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/client.rb: Loosened expired credential error matching to
+  catch both ExpiredToken and RequestExpired.
+
+  * lib/aws/core/http/patch.rb: Fixed namespace bug in http patch (after
+  move).
+
+  * features/direct_connect/client.feature,
+  features/direct_connect/step_definitions/client.rb,
+  features/direct_connect/step_definitions/direct_connect.rb,
+  features/s3/100_continue.feature, lib/aws-sdk.rb,
+  lib/aws/api_config/DirectConnect-2012-10-25.yml, lib/aws/core.rb,
+  lib/aws/direct_connect.rb, lib/aws/direct_connect/client.rb,
+  lib/aws/direct_connect/config.rb, lib/aws/direct_connect/errors.rb,
+  lib/aws/direct_connect/request.rb, lib/aws/import_export.rb: Added support
+  for AWS Direct Connect (2012-10-25).
+
+  * lib/aws/data_pipeline/client.rb: Updated some documentation in
+  AWS::DataPipeline::Client.
+
+  * lib/aws/ec2/network_interface.rb: Added
+  AWS::EC2::NetworkInterface#private_ip_addresses.
+
+  Resolves #230
+
+  * lib/aws/core/client.rb: Improved retry logic for throttling errors and
+  expired credentials.
+
+  * Added additional error types to the list of throttling errors.
+  * Added invalid credential errors to those that need to be
+    retried as expired creds
+
+  When account credentials are rotated they (the old/invalid) credentials
+  return a different error than when session credentials expire.  Now
+  catching invalid account credential errors and retrying them once
+  (after asking the credential provider to refresh).
+
+2013-04-15 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core.rb, lib/aws/core/client.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/http/connection_pool.rb, lib/aws/core/http/net_http_handler.rb,
+  lib/aws/core/http/patch.rb, lib/aws/core/http/request.rb,
+  lib/aws/core/log_formatter.rb, lib/aws/core/response.rb,
+  lib/net/http/connection_pool.rb, lib/net/http/connection_pool/connection.rb,
+  lib/net/http/connection_pool/session.rb, spec/aws/config_spec.rb,
+  spec/aws/core/http/connection_pool_spec.rb,
+  spec/aws/core/http/net_http_handler_spec.rb,
+  spec/aws/core/log_formatter_spec.rb, spec/dummy_server.rb,
+  spec/net/http/connection_pool/connection_spec.rb,
+  spec/net/http/connection_pool/live_tests_spec.rb,
+  spec/net/http/connection_pool/session_spec.rb,
+  spec/net/http/connection_pool_spec.rb, spec/shared/aws_client_examples.rb:
+  Simplified the connection pool and addressed a few issues.
+
+  The default http handler (AWS::Core::Http::NetHttpHandler) used
+  internally a Net::Http::ConnectionPool class.  This was refactored
+  (and renamed to AWS::Core::Http::ConnectionPool).
+
+  * ConnectionPool.new will now return a previously build (shared)
+    pool for the same options.
+
+  * ConnectionPool.new now tracks all pools, and you can get a list
+    of them from ConnectionPool.pools.
+
+  * Moved Net::HTTP patch into aws/core/http/patch (this fixes
+    100-continue bug in 1.9.3 and 2.0.0)
+
+  As part of this refactor a handful of configuration options were
+  removed from AWS::Core::Http::Request (e.g. ssl_ca_file, proxy_uri,
+  etc).  These attributes are now passed to the ConnectionPool
+  constructor instead and not tracked on each http request.
+
+2013-04-12 Trevor Rowe <trevorrowe@gmail.com>
+
+  * spec/aws/s3/client_spec.rb: Fixed xml matching in S3 client spec.
+
+  * lib/aws/rails.rb: Simplified Rails version detection.
+
+  * lib/aws/s3/client.rb: Now using Nokogiri::XML::Builder instead of REXML in
+  AWS::S3::Client.
+
+  Converted a few final locations in the S3 client that built XML
+  incorrectly using REXML (now using the nokogiri xml builder).  These
+  locations did not correctly escape xml values in all situations.
+
+  Fixes #118
+
+  * features/cloud_front/client.feature,
+  features/cloud_front/step_definitions/client.rb,
+  lib/aws/cloud_front/request.rb: Added support for session credentials to
+  AWS::CloudFront.
+
+  The AWS::CloudFront::Request class was ignoring session
+  tokens when signing the request.  This caused Cloud Front
+  to return cyrptic errors.  Now setting the 'x-amz-session-token'
+  header when the credentials contain a session token.
+
+  Fixes #227
+
+  * lib/aws/ec2/instance_collection.rb,
+  spec/aws/ec2/instance_collection_spec.rb:
+  AWS::EC2::InstanceCollection#create now accepts :block_device_mappings in
+  the same format aws AWS::EC2::Client#run_instances.
+
+  Previously it expected a hash option and then it would
+  create the array of hashes required by #run_instances.  It
+  now only translates when a hash is given and it passes arrays
+  along un-modified.
+
+  Fixes #210
+
+  * lib/aws/api_config/CloudFront-2012-07-01.yml,
+  lib/aws/cloud_front/client.rb: Updated AWS::CloudFront::Client to the
+  2012-07-01 api version.
+
+  Fixes #217
+
+2013-03-05 Trevor Rowe <trevorrowe@gmail.com>
+
+  * features/s3/100_continue.feature,
+  features/s3/high_level/step_definitions.rb, lib/aws/core.rb,
+  lib/aws/core/client.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/http/net_http_handler.rb, lib/aws/core/http/request.rb,
+  lib/net/http/connection_pool.rb, lib/net/http/connection_pool/connection.rb,
+  lib/net/http/connection_pool/session.rb,
+  spec/aws/core/http/net_http_handler_spec.rb: Added support for sending
+  "expect" and waiting for 100-continue.
+
+  Added two new configuration options to AWS.config:
+
+  * :http_continue_timeout (time in seconds, defaults to 1)
+  * :http_continue_threshold (size in bytes, defaults false)
+
+  If a request body exceeds the :http_continue_threshold, then the
+  "Expect" header will be set to "100-continue".  The http client will
+  then wait for a "100 Continue" response or :http_continue_timeout
+  seconds before sending the body.
+
+  By default the :http_continue_timeout is set to 1 seconds and the
+  :http_continue_threshold is disabled (set to false).
+
+  To enable 100-continues you need to do 2 things:
+
+  * Call `AWS.patch_net_http_100_continue!`
+  * Set `:http_continue_threshold` to a positive integer (number of bytes)
+
+  References #172
+
+2013-04-11 LeeGraber <lee@highspot.com>
+
+  * lib/aws/s3/s3_object.rb: forgot to remove debug statement
+
+  * lib/aws/s3/client.rb, lib/aws/s3/client/xml.rb, lib/aws/s3/config.rb,
+  lib/aws/s3/multipart_upload.rb, lib/aws/s3/s3_object.rb: Adjustments as per
+  feedback from AWS developer
+
+  * lib/aws/s3/client.rb: Removed a bucket name validation from
+  AWS::S3::Client#put_bucket_website.
+
+  This validation method was intended only to be called when creating a
+  bucket.
+
+  * lib/aws/elb/load_balancer_collection.rb: Corrected documentation for
+  AWS::ELB::LoadBalancerCollection#create.
+
+  Fixes #216
+
+  * lib/aws/ec2/image.rb, spec/aws/ec2/image_spec.rb: Added
+  AWS::EC2::Image#image_id as an alias to #id.
+
+  References #223
+
+  * spec/aws/core/region_collection_spec.rb: Fixed a broken 1.8.7 spec (caused
+  by hash key ordering).
+
+  * lib/aws/auto_scaling.rb, lib/aws/cloud_formation.rb,
+  lib/aws/cloud_front.rb, lib/aws/cloud_search.rb, lib/aws/cloud_watch.rb,
+  lib/aws/core/configuration.rb, lib/aws/core/region_collection.rb,
+  lib/aws/core/service_interface.rb, lib/aws/data_pipeline.rb,
+  lib/aws/dynamo_db.rb, lib/aws/ec2.rb, lib/aws/elastic_beanstalk.rb,
+  lib/aws/elastic_transcoder.rb, lib/aws/elasticache.rb, lib/aws/elb.rb,
+  lib/aws/emr.rb, lib/aws/glacier.rb, lib/aws/iam.rb,
+  lib/aws/import_export.rb, lib/aws/ops_works.rb, lib/aws/rds.rb,
+  lib/aws/redshift.rb, lib/aws/route_53.rb, lib/aws/s3.rb,
+  lib/aws/simple_db.rb, lib/aws/simple_email_service.rb,
+  lib/aws/simple_workflow.rb, lib/aws/sns.rb, lib/aws/sqs.rb,
+  lib/aws/storage_gateway.rb, lib/aws/sts.rb, lib/aws/version.rb,
+  spec/aws/core/client_spec.rb, spec/aws/core/region_collection_spec.rb,
+  spec/aws/core/region_spec.rb: Added a regions method to each service
+  interface.
+
+  You can now enumerate the regions a specific service
+  is available in.
+
+      # generate a list of tables per region
+      AWS::DynamoDB.regions.each do |region|
+        puts regions.name
+        puts region.dynamo_db.tables.map(&:name)
+        puts ''
+      end
+
+2013-04-10 Mike Attili <attili@amaxo.com>
+
+  * features/s3/low_level/buckets.feature: Add mixed case bucket name test
+  scenario.
+
+2013-04-09 Trevor Rowe <trevorrowe@gmail.com>
+
+  * endpoints.json, lib/aws/core.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/region.rb, lib/aws/core/region_collection.rb,
+  spec/aws/core/region_collection_spec.rb, spec/aws/core/region_spec.rb: Added
+  Region and RegionCollection and related helpers.
+
+  You can get a region object using AWS.regions.  This region
+  can be used as a shortcut for getting region specific clients.
+
+      east = AWS.regions['us-east-1']
+      west = AWS.regions['us-west-1']
+
+      east.ec2.instances.map(&:id)
+      west.ec2.instances.map(&:id)
+
+  You can also explore available regions using AWS.regions:
+
+      # makes a single (cached) http request to get a complete list of regions
+      AWS.regions.each do |region|
+        puts region.name
+      end
+
+2013-04-08 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/auto_scaling/config.rb, lib/aws/cloud_formation/config.rb,
+  lib/aws/cloud_search/config.rb, lib/aws/cloud_watch/config.rb,
+  lib/aws/core.rb, lib/aws/core/cacheable.rb, lib/aws/core/configuration.rb,
+  lib/aws/data_pipeline/config.rb, lib/aws/dynamo_db/config.rb,
+  lib/aws/ec2.rb, lib/aws/ec2/config.rb, lib/aws/elastic_beanstalk/config.rb,
+  lib/aws/elastic_transcoder/config.rb, lib/aws/elasticache/config.rb,
+  lib/aws/elb/config.rb, lib/aws/emr/config.rb, lib/aws/glacier/config.rb,
+  lib/aws/ops_works/config.rb, lib/aws/rds/config.rb,
+  lib/aws/redshift/config.rb, lib/aws/s3/bucket_collection.rb,
+  lib/aws/s3/config.rb, lib/aws/s3/s3_object.rb, lib/aws/simple_db/config.rb,
+  lib/aws/simple_email_service/config.rb, lib/aws/simple_workflow/config.rb,
+  lib/aws/sns/config.rb, lib/aws/sqs/config.rb,
+  lib/aws/storage_gateway/config.rb, spec/aws/core/cacheable_spec.rb: Added
+  support for a single configurable region.
+
+  You can now specify what AWS region you want to connect to:
+
+      AWS.config(:region => 'us-west-2')
+
+  The individual configuration options for each service endpoints are
+  now deprecated.  If you want to override the endpoint for a service
+  you can do so in the constructor:
+
+      AWS::S3.new(:region => 'us-east-1')
+
+      # this also works
+      AWS::S3.new(:endpoint => 's3-us-east-1.amazonaws.com')
+
+  Documentation changes were made to remove mention of the now
+  deprecated options.
+
+  * lib/aws/cloud_search.rb: Correct copy pasted documentation
+
+  * spec/aws/cloud_search_spec.rb: Add spec for CloudSearch
+
+2013-04-07 Mike Attili <attili@amaxo.com>
+
+  * lib/aws/s3/client.rb, spec/aws/s3/client_spec.rb: Align bucket naming
+  rules with S3 2006-03-01 API rules.
+
+  Permit bucket names that follow the less restrictive naming rules specified
+  in
+  http://docs.aws.amazon.com/AmazonS3/2006-03-01/dev/BucketRestrictions.html
+  but restrict dns compatible names to the more restrictive rules in the same
+  document.
+
+2013-04-06 Rafael Rosa Fu <rafaelrosafu@gmail.com>
+
+  * .gitignore: Added bin directory to .gitignore, avoid problems with
+  binstubs
+
+  * spec/spec_helper.rb: Grouping coverage report by service
+
+2013-04-04 Trevor Rowe <trevorrowe@gmail.com>
+
+  * .yardopts: Added a --markup option to the yardopts to use markdown.
+
+  * lib/aws/auto_scaling.rb, lib/aws/auto_scaling/activity_collection.rb,
+  lib/aws/auto_scaling/group.rb, lib/aws/auto_scaling/group_collection.rb,
+  lib/aws/auto_scaling/group_options.rb, lib/aws/auto_scaling/instance.rb,
+  lib/aws/auto_scaling/instance_collection.rb,
+  lib/aws/auto_scaling/launch_configuration_collection.rb,
+  lib/aws/auto_scaling/notification_configuration.rb,
+  lib/aws/auto_scaling/notification_configuration_collection.rb,
+  lib/aws/auto_scaling/scaling_policy_options.rb,
+  lib/aws/auto_scaling/scheduled_action_collection.rb,
+  lib/aws/auto_scaling/tag_collection.rb, lib/aws/cloud_formation.rb,
+  lib/aws/cloud_formation/stack.rb,
+  lib/aws/cloud_formation/stack_collection.rb,
+  lib/aws/cloud_formation/stack_event.rb,
+  lib/aws/cloud_formation/stack_resource_collection.rb,
+  lib/aws/cloud_formation/stack_resource_summary_collection.rb,
+  lib/aws/cloud_formation/stack_summary_collection.rb, lib/aws/cloud_front.rb,
+  lib/aws/cloud_search.rb, lib/aws/cloud_watch.rb,
+  lib/aws/cloud_watch/alarm.rb, lib/aws/cloud_watch/alarm_collection.rb,
+  lib/aws/cloud_watch/metric.rb,
+  lib/aws/cloud_watch/metric_alarm_collection.rb,
+  lib/aws/cloud_watch/metric_collection.rb,
+  lib/aws/cloud_watch/metric_statistics.rb, lib/aws/core.rb,
+  lib/aws/core/async_handle.rb, lib/aws/core/client.rb,
+  lib/aws/core/collection.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/data.rb, lib/aws/core/lazy_error_classes.rb,
+  lib/aws/core/log_formatter.rb, lib/aws/core/options/validator.rb,
+  lib/aws/core/policy.rb, lib/aws/core/resource.rb, lib/aws/core/response.rb,
+  lib/aws/core/rest_request_builder.rb, lib/aws/core/service_interface.rb,
+  lib/aws/data_pipeline.rb, lib/aws/dynamo_db.rb,
+  lib/aws/dynamo_db/attribute_collection.rb, lib/aws/dynamo_db/batch_get.rb,
+  lib/aws/dynamo_db/batch_write.rb, lib/aws/dynamo_db/binary.rb,
+  lib/aws/dynamo_db/item.rb, lib/aws/dynamo_db/item_collection.rb,
+  lib/aws/dynamo_db/table.rb, lib/aws/dynamo_db/table_collection.rb,
+  lib/aws/ec2.rb, lib/aws/ec2/attachment.rb, lib/aws/ec2/elastic_ip.rb,
+  lib/aws/ec2/elastic_ip_collection.rb, lib/aws/ec2/export_task_collection.rb,
+  lib/aws/ec2/filtered_collection.rb, lib/aws/ec2/image.rb,
+  lib/aws/ec2/image_collection.rb, lib/aws/ec2/instance.rb,
+  lib/aws/ec2/instance_collection.rb, lib/aws/ec2/internet_gateway.rb,
+  lib/aws/ec2/internet_gateway/attachment.rb, lib/aws/ec2/network_acl.rb,
+  lib/aws/ec2/network_interface/attachment.rb, lib/aws/ec2/region.rb,
+  lib/aws/ec2/resource_tag_collection.rb,
+  lib/aws/ec2/route_table/association.rb, lib/aws/ec2/route_table/route.rb,
+  lib/aws/ec2/security_group.rb, lib/aws/ec2/security_group_collection.rb,
+  lib/aws/ec2/snapshot.rb, lib/aws/ec2/snapshot_collection.rb,
+  lib/aws/ec2/subnet_collection.rb, lib/aws/ec2/tagged_collection.rb,
+  lib/aws/ec2/tagged_item.rb, lib/aws/ec2/volume.rb,
+  lib/aws/ec2/volume_collection.rb, lib/aws/ec2/vpc_collection.rb,
+  lib/aws/ec2/vpn_connection_collection.rb, lib/aws/elastic_beanstalk.rb,
+  lib/aws/elasticache.rb, lib/aws/elb.rb,
+  lib/aws/elb/availability_zone_collection.rb,
+  lib/aws/elb/backend_server_policy_collection.rb,
+  lib/aws/elb/instance_collection.rb, lib/aws/elb/listener.rb,
+  lib/aws/elb/load_balancer.rb, lib/aws/elb/load_balancer_collection.rb,
+  lib/aws/elb/load_balancer_policy.rb,
+  lib/aws/elb/load_balancer_policy_collection.rb, lib/aws/emr.rb,
+  lib/aws/emr/job_flow.rb, lib/aws/emr/job_flow_collection.rb,
+  lib/aws/glacier.rb, lib/aws/iam.rb, lib/aws/iam/access_key.rb,
+  lib/aws/iam/access_key_collection.rb,
+  lib/aws/iam/account_alias_collection.rb, lib/aws/iam/group.rb,
+  lib/aws/iam/group_collection.rb, lib/aws/iam/group_policy_collection.rb,
+  lib/aws/iam/group_user_collection.rb, lib/aws/iam/server_certificate.rb,
+  lib/aws/iam/server_certificate_collection.rb,
+  lib/aws/iam/signing_certificate.rb,
+  lib/aws/iam/signing_certificate_collection.rb, lib/aws/iam/user.rb,
+  lib/aws/iam/user_collection.rb, lib/aws/iam/user_group_collection.rb,
+  lib/aws/iam/user_policy_collection.rb, lib/aws/import_export.rb,
+  lib/aws/rails.rb, lib/aws/rds.rb, lib/aws/record.rb,
+  lib/aws/record/abstract_base.rb, lib/aws/record/attributes.rb,
+  lib/aws/record/dirty_tracking.rb, lib/aws/record/errors.rb,
+  lib/aws/record/hash_model.rb, lib/aws/record/hash_model/attributes.rb,
+  lib/aws/record/hash_model/finder_methods.rb,
+  lib/aws/record/hash_model/scope.rb, lib/aws/record/model.rb,
+  lib/aws/record/model/attributes.rb, lib/aws/record/model/finder_methods.rb,
+  lib/aws/record/model/scope.rb, lib/aws/record/scope.rb,
+  lib/aws/record/validations.rb, lib/aws/redshift.rb, lib/aws/route_53.rb,
+  lib/aws/route_53/change_batch.rb, lib/aws/route_53/hosted_zone.rb,
+  lib/aws/route_53/hosted_zone_collection.rb,
+  lib/aws/route_53/resource_record_set.rb,
+  lib/aws/route_53/resource_record_set_collection.rb, lib/aws/s3.rb,
+  lib/aws/s3/access_control_list.rb, lib/aws/s3/acl_options.rb,
+  lib/aws/s3/bucket.rb, lib/aws/s3/bucket_collection.rb,
+  lib/aws/s3/bucket_lifecycle_configuration.rb,
+  lib/aws/s3/bucket_tag_collection.rb, lib/aws/s3/client.rb,
+  lib/aws/s3/cors_rule.rb, lib/aws/s3/cors_rule_collection.rb,
+  lib/aws/s3/errors.rb, lib/aws/s3/multipart_upload.rb,
+  lib/aws/s3/multipart_upload_collection.rb, lib/aws/s3/object_collection.rb,
+  lib/aws/s3/object_metadata.rb, lib/aws/s3/object_version_collection.rb,
+  lib/aws/s3/prefixed_collection.rb, lib/aws/s3/presigned_post.rb,
+  lib/aws/s3/request.rb, lib/aws/s3/s3_object.rb, lib/aws/s3/tree.rb,
+  lib/aws/simple_db.rb, lib/aws/simple_db/attribute.rb,
+  lib/aws/simple_db/attribute_collection.rb, lib/aws/simple_db/domain.rb,
+  lib/aws/simple_db/errors.rb, lib/aws/simple_db/item.rb,
+  lib/aws/simple_db/item_collection.rb, lib/aws/simple_db/item_data.rb,
+  lib/aws/simple_email_service.rb, lib/aws/simple_email_service/quotas.rb,
+  lib/aws/simple_workflow.rb, lib/aws/simple_workflow/activity_task.rb,
+  lib/aws/simple_workflow/activity_task_collection.rb,
+  lib/aws/simple_workflow/activity_type.rb,
+  lib/aws/simple_workflow/decision_task.rb,
+  lib/aws/simple_workflow/decision_task_collection.rb,
+  lib/aws/simple_workflow/domain_collection.rb,
+  lib/aws/simple_workflow/history_event.rb,
+  lib/aws/simple_workflow/type_collection.rb,
+  lib/aws/simple_workflow/workflow_execution.rb,
+  lib/aws/simple_workflow/workflow_execution_collection.rb,
+  lib/aws/simple_workflow/workflow_type.rb, lib/aws/sns.rb,
+  lib/aws/sns/subscription_collection.rb, lib/aws/sns/topic.rb,
+  lib/aws/sns/topic_collection.rb,
+  lib/aws/sns/topic_subscription_collection.rb, lib/aws/sqs.rb,
+  lib/aws/sqs/queue.rb, lib/aws/sqs/queue_collection.rb,
+  lib/aws/sqs/received_message.rb, lib/aws/storage_gateway.rb, lib/aws/sts.rb,
+  lib/net/http/connection_pool.rb, lib/net/http/connection_pool/connection.rb,
+  lib/net/http/connection_pool/session.rb: Converted documentation code
+  snippets to markdown format (using 4 spaces).
+
+  * lib/aws/api_config/DynamoDB-2011-12-05.yml: Added NumberOfDecreasesToday
+  to DynamoDB API configuration.
+
+2013-04-01 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/auto_scaling.rb, lib/aws/auto_scaling/client.rb,
+  lib/aws/auto_scaling/group.rb, lib/aws/auto_scaling/group_options.rb,
+  lib/aws/auto_scaling/instance.rb,
+  lib/aws/auto_scaling/notification_configuration_collection.rb,
+  lib/aws/auto_scaling/scaling_policy_options.rb,
+  lib/aws/auto_scaling/scheduled_action_collection.rb,
+  lib/aws/auto_scaling/tag_collection.rb, lib/aws/cloud_formation.rb,
+  lib/aws/cloud_formation/client.rb, lib/aws/cloud_formation/stack.rb,
+  lib/aws/cloud_formation/stack_collection.rb,
+  lib/aws/cloud_formation/stack_event.rb,
+  lib/aws/cloud_formation/stack_resource_collection.rb,
+  lib/aws/cloud_formation/stack_resource_summary_collection.rb,
+  lib/aws/cloud_formation/stack_summary_collection.rb, lib/aws/cloud_front.rb,
+  lib/aws/cloud_front/client.rb, lib/aws/cloud_search.rb,
+  lib/aws/cloud_search/client.rb, lib/aws/cloud_watch.rb,
+  lib/aws/cloud_watch/alarm_collection.rb, lib/aws/cloud_watch/client.rb,
+  lib/aws/cloud_watch/metric.rb,
+  lib/aws/cloud_watch/metric_alarm_collection.rb,
+  lib/aws/cloud_watch/metric_collection.rb,
+  lib/aws/cloud_watch/metric_statistics.rb, lib/aws/core.rb,
+  lib/aws/core/client.rb, lib/aws/core/collection.rb,
+  lib/aws/core/collection/with_limit_and_next_token.rb,
+  lib/aws/core/collection/with_next_token.rb, lib/aws/core/configuration.rb,
+  lib/aws/core/credential_providers.rb, lib/aws/core/data.rb,
+  lib/aws/core/http/net_http_handler.rb, lib/aws/core/http/request.rb,
+  lib/aws/core/http/response.rb, lib/aws/core/log_formatter.rb,
+  lib/aws/core/page_result.rb, lib/aws/core/policy.rb,
+  lib/aws/core/response.rb, lib/aws/core/service_interface.rb,
+  lib/aws/core/xml/grammar.rb, lib/aws/data_pipeline.rb,
+  lib/aws/data_pipeline/client.rb, lib/aws/dynamo_db.rb,
+  lib/aws/dynamo_db/attribute_collection.rb, lib/aws/dynamo_db/batch_get.rb,
+  lib/aws/dynamo_db/client.rb, lib/aws/dynamo_db/item.rb,
+  lib/aws/dynamo_db/item_collection.rb, lib/aws/dynamo_db/table.rb,
+  lib/aws/dynamo_db/table_collection.rb, lib/aws/ec2.rb,
+  lib/aws/ec2/attachment.rb, lib/aws/ec2/availability_zone.rb,
+  lib/aws/ec2/client.rb, lib/aws/ec2/elastic_ip.rb,
+  lib/aws/ec2/elastic_ip_collection.rb, lib/aws/ec2/export_task_collection.rb,
+  lib/aws/ec2/image.rb, lib/aws/ec2/image_collection.rb,
+  lib/aws/ec2/instance.rb, lib/aws/ec2/instance_collection.rb,
+  lib/aws/ec2/internet_gateway/attachment.rb,
+  lib/aws/ec2/key_pair_collection.rb, lib/aws/ec2/route_table/association.rb,
+  lib/aws/ec2/security_group.rb, lib/aws/ec2/security_group_collection.rb,
+  lib/aws/ec2/snapshot.rb, lib/aws/ec2/snapshot_collection.rb,
+  lib/aws/ec2/subnet_collection.rb, lib/aws/ec2/volume.rb,
+  lib/aws/ec2/volume_collection.rb, lib/aws/ec2/vpc_collection.rb,
+  lib/aws/elastic_beanstalk.rb, lib/aws/elastic_beanstalk/client.rb,
+  lib/aws/elastic_transcoder/client.rb, lib/aws/elasticache.rb,
+  lib/aws/elasticache/client.rb, lib/aws/elb.rb,
+  lib/aws/elb/backend_server_policy_collection.rb, lib/aws/elb/client.rb,
+  lib/aws/elb/instance_collection.rb, lib/aws/elb/listener_collection.rb,
+  lib/aws/elb/load_balancer.rb, lib/aws/elb/load_balancer_collection.rb,
+  lib/aws/elb/load_balancer_policy_collection.rb, lib/aws/emr.rb,
+  lib/aws/emr/client.rb, lib/aws/emr/instance_group.rb,
+  lib/aws/emr/job_flow.rb, lib/aws/emr/job_flow_collection.rb,
+  lib/aws/errors.rb, lib/aws/glacier.rb,
+  lib/aws/glacier/archive_collection.rb, lib/aws/glacier/client.rb,
+  lib/aws/glacier/vault.rb, lib/aws/iam.rb, lib/aws/iam/access_key.rb,
+  lib/aws/iam/access_key_collection.rb, lib/aws/iam/client.rb,
+  lib/aws/iam/group_collection.rb, lib/aws/iam/mfa_device_collection.rb,
+  lib/aws/iam/policy_collection.rb, lib/aws/iam/resource.rb,
+  lib/aws/iam/server_certificate_collection.rb,
+  lib/aws/iam/signing_certificate.rb,
+  lib/aws/iam/signing_certificate_collection.rb, lib/aws/iam/user.rb,
+  lib/aws/iam/user_collection.rb, lib/aws/import_export.rb,
+  lib/aws/import_export/client.rb, lib/aws/ops_works/client.rb,
+  lib/aws/rails.rb, lib/aws/rds.rb, lib/aws/rds/client.rb,
+  lib/aws/rds/db_instance.rb, lib/aws/rds/db_snapshot.rb,
+  lib/aws/record/abstract_base.rb, lib/aws/record/attributes.rb,
+  lib/aws/record/dirty_tracking.rb, lib/aws/record/errors.rb,
+  lib/aws/record/hash_model/attributes.rb,
+  lib/aws/record/hash_model/finder_methods.rb,
+  lib/aws/record/hash_model/scope.rb, lib/aws/record/model.rb,
+  lib/aws/record/model/attributes.rb, lib/aws/record/model/finder_methods.rb,
+  lib/aws/record/model/scope.rb, lib/aws/record/scope.rb,
+  lib/aws/record/validations.rb, lib/aws/redshift.rb,
+  lib/aws/redshift/client.rb, lib/aws/route_53.rb,
+  lib/aws/route_53/change_batch.rb, lib/aws/route_53/client.rb,
+  lib/aws/route_53/hosted_zone.rb, lib/aws/route_53/hosted_zone_collection.rb,
+  lib/aws/route_53/resource_record_set.rb,
+  lib/aws/route_53/resource_record_set_collection.rb, lib/aws/s3.rb,
+  lib/aws/s3/access_control_list.rb, lib/aws/s3/acl_options.rb,
+  lib/aws/s3/bucket.rb, lib/aws/s3/bucket_collection.rb,
+  lib/aws/s3/bucket_lifecycle_configuration.rb,
+  lib/aws/s3/bucket_tag_collection.rb, lib/aws/s3/cipher_io.rb,
+  lib/aws/s3/client.rb, lib/aws/s3/cors_rule_collection.rb,
+  lib/aws/s3/data_options.rb, lib/aws/s3/encryption_utils.rb,
+  lib/aws/s3/multipart_upload.rb, lib/aws/s3/object_collection.rb,
+  lib/aws/s3/prefixed_collection.rb, lib/aws/s3/presigned_post.rb,
+  lib/aws/s3/request.rb, lib/aws/s3/s3_object.rb, lib/aws/s3/tree.rb,
+  lib/aws/s3/tree/parent.rb, lib/aws/s3/website_configuration.rb,
+  lib/aws/simple_db.rb, lib/aws/simple_db/attribute_collection.rb,
+  lib/aws/simple_db/client.rb, lib/aws/simple_db/consistent_read_option.rb,
+  lib/aws/simple_db/errors.rb, lib/aws/simple_db/item_collection.rb,
+  lib/aws/simple_db/item_data.rb, lib/aws/simple_email_service.rb,
+  lib/aws/simple_email_service/client.rb,
+  lib/aws/simple_email_service/email_address_collection.rb,
+  lib/aws/simple_email_service/identity.rb, lib/aws/simple_workflow.rb,
+  lib/aws/simple_workflow/activity_task.rb,
+  lib/aws/simple_workflow/activity_task_collection.rb,
+  lib/aws/simple_workflow/activity_type.rb,
+  lib/aws/simple_workflow/activity_type_collection.rb,
+  lib/aws/simple_workflow/client.rb, lib/aws/simple_workflow/decision_task.rb,
+  lib/aws/simple_workflow/decision_task_collection.rb,
+  lib/aws/simple_workflow/domain.rb,
+  lib/aws/simple_workflow/domain_collection.rb,
+  lib/aws/simple_workflow/history_event.rb,
+  lib/aws/simple_workflow/workflow_execution.rb,
+  lib/aws/simple_workflow/workflow_execution_collection.rb,
+  lib/aws/simple_workflow/workflow_type.rb,
+  lib/aws/simple_workflow/workflow_type_collection.rb, lib/aws/sns.rb,
+  lib/aws/sns/client.rb, lib/aws/sns/subscription.rb, lib/aws/sns/topic.rb,
+  lib/aws/sqs.rb, lib/aws/sqs/client.rb, lib/aws/sqs/errors.rb,
+  lib/aws/sqs/queue.rb, lib/aws/sqs/received_message.rb,
+  lib/aws/storage_gateway.rb, lib/aws/storage_gateway/client.rb,
+  lib/aws/sts/client.rb, lib/aws/sts/session.rb,
+  lib/net/http/connection_pool.rb, lib/net/http/connection_pool/connection.rb:
+  Initial pass for converting RDoc formatted comments into Markdown.
+
+  * Gemfile, features/s3/high_level/step_definitions/post.rb,
+  features/s3/high_level/step_definitions/urls.rb,
+  features/s3/low_level/step_definitions/uploads.rb: Updated S3 integration
+  test scenarios to work with Ruby 2.0
+
+  * lib/aws/s3/cipher_io.rb, lib/aws/s3/data_options.rb: Fixed an issue with
+  AWS::S3::S3Object#write and Ruby 2.0
+
+  Resolved an issue in #write for regular and client-side encrypted
+  objects that passed in IO-like objects (Net::HTTP now passes
+  in an output buffer to #read).
+
+  Fixes #215
+  Fixes #192
+
+2013-04-03 LeeGraber <lee@highspot.com>
+
+  * lib/aws/s3/client.rb, lib/aws/s3/config.rb,
+  lib/aws/s3/multipart_upload.rb, lib/aws/s3/s3_object.rb: Added support for
+  copy on multipart_upload
+
+  as per
+  http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadUploadPartCopy.ht
+  ml, this adds an explicit api on the multipart_upload object
+  (copy_part) as well as auto-detection and handling of file > 5GB for
+  copy method on an s3_object
+
+2013-03-26 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/ec2.rb, lib/aws/ec2/image_collection.rb,
+  lib/aws/ec2/snapshot_collection.rb, lib/aws/ec2/volume_collection.rb,
+  lib/aws/sqs/queue.rb, lib/aws/sqs/received_message.rb: Reformatted a few
+  rdoc links to make it easier to transition to markdown.
+
+  * lib/aws/ec2/attachment.rb: Refactor duplicate attachment code in EC2
+
+2013-03-25 Trevor Rowe <trevorrowe@gmail.com>
+
+  * ChangeLog: Removed lengthy change log in favor of links to release notes
+  in README.
+
+  * README.rdoc: Added links of interest to the top of the README.
+
+  * recipebook/.gitignore, recipebook/Gemfile, recipebook/Gemfile.lock,
+  recipebook/README, recipebook/Rakefile,
+  recipebook/app/controllers/application_controller.rb,
+  recipebook/app/controllers/index_controller.rb,
+  recipebook/app/controllers/recipes_controller.rb,
+  recipebook/app/helpers/application_helper.rb,
+  recipebook/app/helpers/recipes_helper.rb, recipebook/app/models/recipe.rb,
+  recipebook/app/views/index/index.rhtml,
+  recipebook/app/views/layouts/application.html.erb,
+  recipebook/app/views/layouts/application.html.haml,
+  recipebook/app/views/recipes/_form.html.haml,
+  recipebook/app/views/recipes/edit.html.haml,
+  recipebook/app/views/recipes/index.html.haml,
+  recipebook/app/views/recipes/new.html.haml,
+  recipebook/app/views/recipes/show.html.haml, recipebook/config.ru,
+  recipebook/config/application.rb, recipebook/config/boot.rb,
+  recipebook/config/cucumber.yml, recipebook/config/database.yml,
+  recipebook/config/environment.rb,
+  recipebook/config/environments/development.rb,
+  recipebook/config/environments/production.rb,
+  recipebook/config/environments/test.rb,
+  recipebook/config/initializers/aws.rb,
+  recipebook/config/initializers/backtrace_silencers.rb,
+  recipebook/config/initializers/form_wow.rb,
+  recipebook/config/initializers/inflections.rb,
+  recipebook/config/initializers/mime_types.rb,
+  recipebook/config/initializers/monkey_patch.rb,
+  recipebook/config/initializers/secret_token.rb,
+  recipebook/config/initializers/session_store.rb,
+  recipebook/config/locales/en.yml, recipebook/config/routes.rb,
+  recipebook/db/schema.rb, recipebook/db/seeds.rb,
+  recipebook/features/recipes/crud.feature,
+  recipebook/features/recipes/step_definitions/crud.rb,
+  recipebook/features/step_definitions/more_web_steps.rb,
+  recipebook/features/step_definitions/web_steps.rb,
+  recipebook/features/support/cleanup.rb, recipebook/features/support/env.rb,
+  recipebook/features/support/paths.rb, recipebook/lib/tasks/cucumber.rake,
+  recipebook/public/404.html, recipebook/public/422.html,
+  recipebook/public/500.html, recipebook/public/favicon.ico,
+  recipebook/public/images/rails.png,
+  recipebook/public/javascripts/application.js,
+  recipebook/public/javascripts/controls.js,
+  recipebook/public/javascripts/dragdrop.js,
+  recipebook/public/javascripts/effects.js,
+  recipebook/public/javascripts/jquery-ui.js,
+  recipebook/public/javascripts/jquery-ui.min.js,
+  recipebook/public/javascripts/jquery.js,
+  recipebook/public/javascripts/jquery.min.js,
+  recipebook/public/javascripts/prototype.js,
+  recipebook/public/javascripts/rails.js, recipebook/public/robots.txt,
+  recipebook/public/stylesheets/application.css,
+  recipebook/public/stylesheets/sass/application.sass,
+  recipebook/script/cucumber, recipebook/script/rails,
+  recipebook/spec/spec_helper.rb,
+  recipebook/test/performance/browsing_test.rb,
+  recipebook/test/test_helper.rb, recipebook/vendor/plugins/form_wow/init.rb,
+  recipebook/vendor/plugins/form_wow/lib/form_wow.rb,
+  recipebook/vendor/plugins/form_wow/lib/form_wow/builder.rb,
+  recipebook/vendor/plugins/form_wow/lib/form_wow/helpers.rb: Removed (stale)
+  example rails application.
+
+  * features/auto_scaling/launch_configurations.feature,
+  features/auto_scaling/step_definitions/auto_scaling.rb,
+  features/auto_scaling/step_definitions/notification_configurations.rb,
+  features/auto_scaling/step_definitions/scaling_policies.rb,
+  features/cloud_formation/step_definitions/stacks.rb,
+  features/cloud_formation/templates.feature,
+  features/cloud_front/step_definitions/client.rb,
+  features/cloud_watch/step_definitions/metrics.rb,
+  features/dynamo_db/step_definitions/tables.rb,
+  features/ec2/customer_gateways.feature, features/ec2/images.feature,
+  features/ec2/internet_gateways.feature, features/ec2/route_tables.feature,
+  features/ec2/security_groups.feature, features/ec2/step_definitions/ec2.rb,
+  features/ec2/step_definitions/network_interfaces.rb,
+  features/ec2/step_definitions/route_tables.rb,
+  features/ec2/step_definitions/security_groups.rb,
+  features/ec2/step_definitions/snapshot_attributes.rb,
+  features/ec2/subnets.feature, features/ec2/vpn_gateways.feature,
+  features/elb/backend_server_policies.feature,
+  features/elb/listeners.feature, features/elb/load_balancers.feature,
+  features/elb/step_definitions/backend_server_policies.rb,
+  features/elb/step_definitions/instances.rb,
+  features/elb/step_definitions/listeners.rb,
+  features/elb/step_definitions/load_balancers.rb,
+  features/elb/step_definitions/policies.rb,
+  features/iam/account_aliases.feature,
+  features/iam/signing_certificates.feature,
+  features/iam/step_definitions/iam.rb,
+  features/iam/step_definitions/signing_certificates.rb,
+  features/iam/users.feature, features/record/count.feature,
+  features/record/find.feature, features/record/optimistic_locking.feature,
+  features/record/scope.feature, features/record/validations.feature,
+  features/s3/high_level/lifecycle_configuration.feature,
+  features/s3/high_level/step_definitions/lifecycle_configuration.rb,
+  features/s3/high_level/step_definitions/post.rb,
+  features/s3/high_level/tree.feature,
+  features/s3/low_level/step_definitions/versions.rb,
+  features/simple_db/high_level/items.feature,
+  features/simple_db/high_level/step_definitions/items.rb,
+  features/simple_db/high_level/step_definitions/select.rb,
+  features/simple_email_service/email_addresses.feature,
+  features/simple_email_service/send.feature,
+  features/simple_email_service/step_definitions/send.rb,
+  features/simple_email_service/step_definitions/ses.rb,
+  features/simple_workflow/activity_types.feature,
+  features/simple_workflow/step_definitions/activity_types.rb,
+  features/simple_workflow/step_definitions/decision_tasks.rb,
+  features/simple_workflow/step_definitions/workflow_executions.rb,
+  features/simple_workflow/step_definitions/workflow_types.rb,
+  features/simple_workflow/workflow_types.feature,
+  features/sns/step_definitions/topics.rb, features/sns/topics.feature,
+  features/sqs/queues.feature, features/sqs/step_definitions/policies.rb,
+  features/step_definitions.rb, features/support/common.rb,
+  lib/aws/auto_scaling/activity.rb,
+  lib/aws/auto_scaling/activity_collection.rb, lib/aws/auto_scaling/group.rb,
+  lib/aws/auto_scaling/group_collection.rb,
+  lib/aws/auto_scaling/group_options.rb, lib/aws/auto_scaling/instance.rb,
+  lib/aws/auto_scaling/instance_collection.rb,
+  lib/aws/auto_scaling/launch_configuration.rb,
+  lib/aws/auto_scaling/notification_configuration_collection.rb,
+  lib/aws/auto_scaling/scaling_policy.rb,
+  lib/aws/auto_scaling/scaling_policy_collection.rb,
+  lib/aws/auto_scaling/scaling_policy_options.rb,
+  lib/aws/auto_scaling/scheduled_action.rb,
+  lib/aws/auto_scaling/scheduled_action_collection.rb,
+  lib/aws/auto_scaling/tag_collection.rb, lib/aws/cloud_formation.rb,
+  lib/aws/cloud_formation/stack.rb, lib/aws/cloud_formation/stack_event.rb,
+  lib/aws/cloud_formation/stack_output.rb,
+  lib/aws/cloud_formation/stack_resource.rb,
+  lib/aws/cloud_formation/stack_resource_collection.rb,
+  lib/aws/cloud_watch/alarm.rb, lib/aws/cloud_watch/alarm_collection.rb,
+  lib/aws/cloud_watch/alarm_history_item_collection.rb,
+  lib/aws/cloud_watch/metric.rb,
+  lib/aws/cloud_watch/metric_alarm_collection.rb,
+  lib/aws/cloud_watch/metric_collection.rb,
+  lib/aws/cloud_watch/metric_statistics.rb, lib/aws/core/async_handle.rb,
+  lib/aws/core/cacheable.rb, lib/aws/core/http/response.rb,
+  lib/aws/core/lazy_error_classes.rb, lib/aws/core/options/json_serializer.rb,
+  lib/aws/core/page_result.rb, lib/aws/core/signature/version_3.rb,
+  lib/aws/core/uri_escape.rb, lib/aws/core/xml/frame_stack.rb,
+  lib/aws/core/xml/sax_handlers/libxml.rb,
+  lib/aws/core/xml/sax_handlers/nokogiri.rb,
+  lib/aws/core/xml/sax_handlers/rexml.rb, lib/aws/core/xml/stub.rb,
+  lib/aws/dynamo_db/batch_write.rb, lib/aws/dynamo_db/item.rb, lib/aws/ec2.rb,
+  lib/aws/ec2/attachment.rb, lib/aws/ec2/attachment_collection.rb,
+  lib/aws/ec2/availability_zone.rb, lib/aws/ec2/customer_gateway.rb,
+  lib/aws/ec2/customer_gateway_collection.rb, lib/aws/ec2/dhcp_options.rb,
+  lib/aws/ec2/dhcp_options_collection.rb, lib/aws/ec2/elastic_ip.rb,
+  lib/aws/ec2/elastic_ip_collection.rb, lib/aws/ec2/export_task.rb,
+  lib/aws/ec2/export_task_collection.rb, lib/aws/ec2/image.rb,
+  lib/aws/ec2/instance_collection.rb, lib/aws/ec2/internet_gateway.rb,
+  lib/aws/ec2/internet_gateway_collection.rb, lib/aws/ec2/key_pair.rb,
+  lib/aws/ec2/key_pair_collection.rb, lib/aws/ec2/network_acl.rb,
+  lib/aws/ec2/network_acl/association.rb, lib/aws/ec2/network_acl/entry.rb,
+  lib/aws/ec2/network_acl_collection.rb, lib/aws/ec2/network_interface.rb,
+  lib/aws/ec2/network_interface/attachment.rb,
+  lib/aws/ec2/network_interface_collection.rb,
+  lib/aws/ec2/permission_collection.rb,
+  lib/aws/ec2/reserved_instances_collection.rb,
+  lib/aws/ec2/reserved_instances_offering_collection.rb,
+  lib/aws/ec2/route_table.rb, lib/aws/ec2/route_table/association.rb,
+  lib/aws/ec2/route_table/route.rb, lib/aws/ec2/route_table_collection.rb,
+  lib/aws/ec2/security_group_collection.rb, lib/aws/ec2/subnet.rb,
+  lib/aws/ec2/subnet_collection.rb, lib/aws/ec2/tag_collection.rb,
+  lib/aws/ec2/tagged_collection.rb, lib/aws/ec2/tagged_item.rb,
+  lib/aws/ec2/volume.rb, lib/aws/ec2/volume_collection.rb, lib/aws/ec2/vpc.rb,
+  lib/aws/ec2/vpc_collection.rb, lib/aws/ec2/vpn_connection.rb,
+  lib/aws/ec2/vpn_connection/telemetry.rb,
+  lib/aws/ec2/vpn_connection_collection.rb, lib/aws/ec2/vpn_gateway.rb,
+  lib/aws/ec2/vpn_gateway_collection.rb, lib/aws/elb.rb,
+  lib/aws/elb/availability_zone_collection.rb, lib/aws/elb/errors.rb,
+  lib/aws/elb/load_balancer.rb, lib/aws/elb/load_balancer_collection.rb,
+  lib/aws/emr/instance_group_collection.rb, lib/aws/emr/job_flow.rb,
+  lib/aws/errors.rb, lib/aws/glacier/vault_collection.rb, lib/aws/iam.rb,
+  lib/aws/iam/access_key.rb, lib/aws/iam/access_key_collection.rb,
+  lib/aws/iam/config.rb, lib/aws/iam/mfa_device.rb,
+  lib/aws/iam/mfa_device_collection.rb, lib/aws/iam/resource.rb,
+  lib/aws/iam/server_certificate_collection.rb,
+  lib/aws/iam/signing_certificate.rb,
+  lib/aws/iam/signing_certificate_collection.rb, lib/aws/iam/user.rb,
+  lib/aws/iam/user_collection.rb, lib/aws/iam/virtual_mfa_device.rb,
+  lib/aws/iam/virtual_mfa_device_collection.rb, lib/aws/record.rb,
+  lib/aws/record/attributes.rb, lib/aws/record/conversion.rb,
+  lib/aws/record/dirty_tracking.rb, lib/aws/record/errors.rb,
+  lib/aws/record/exceptions.rb, lib/aws/record/hash_model.rb,
+  lib/aws/record/hash_model/finder_methods.rb,
+  lib/aws/record/hash_model/scope.rb, lib/aws/record/model.rb,
+  lib/aws/record/model/attributes.rb, lib/aws/record/model/finder_methods.rb,
+  lib/aws/record/model/scope.rb, lib/aws/record/naming.rb,
+  lib/aws/record/scope.rb, lib/aws/record/validations.rb,
+  lib/aws/record/validator.rb, lib/aws/record/validators/acceptance.rb,
+  lib/aws/record/validators/block.rb,
+  lib/aws/record/validators/confirmation.rb,
+  lib/aws/record/validators/count.rb, lib/aws/record/validators/exclusion.rb,
+  lib/aws/record/validators/format.rb, lib/aws/record/validators/length.rb,
+  lib/aws/record/validators/method.rb,
+  lib/aws/record/validators/numericality.rb,
+  lib/aws/record/validators/presence.rb,
+  lib/aws/route_53/hosted_zone_collection.rb, lib/aws/s3.rb,
+  lib/aws/s3/access_control_list.rb, lib/aws/s3/acl_options.rb,
+  lib/aws/s3/bucket_collection.rb, lib/aws/s3/client/xml.rb,
+  lib/aws/s3/object_metadata.rb, lib/aws/s3/object_version.rb,
+  lib/aws/s3/policy.rb, lib/aws/s3/prefixed_collection.rb,
+  lib/aws/s3/presigned_post.rb, lib/aws/s3/s3_object.rb,
+  lib/aws/s3/tree/child_collection.rb, lib/aws/s3/tree/leaf_node.rb,
+  lib/aws/s3/website_configuration.rb, lib/aws/simple_db.rb,
+  lib/aws/simple_db/attribute.rb, lib/aws/simple_db/attribute_collection.rb,
+  lib/aws/simple_db/consistent_read_option.rb, lib/aws/simple_db/domain.rb,
+  lib/aws/simple_db/domain_collection.rb,
+  lib/aws/simple_db/domain_metadata.rb, lib/aws/simple_db/item.rb,
+  lib/aws/simple_db/item_collection.rb, lib/aws/simple_db/put_attributes.rb,
+  lib/aws/simple_email_service.rb,
+  lib/aws/simple_email_service/email_address_collection.rb,
+  lib/aws/simple_email_service/identity.rb,
+  lib/aws/simple_email_service/quotas.rb, lib/aws/simple_workflow.rb,
+  lib/aws/simple_workflow/activity_task.rb,
+  lib/aws/simple_workflow/activity_task_collection.rb,
+  lib/aws/simple_workflow/activity_type.rb,
+  lib/aws/simple_workflow/activity_type_collection.rb,
+  lib/aws/simple_workflow/count.rb, lib/aws/simple_workflow/decision_task.rb,
+  lib/aws/simple_workflow/decision_task_collection.rb,
+  lib/aws/simple_workflow/domain.rb,
+  lib/aws/simple_workflow/domain_collection.rb,
+  lib/aws/simple_workflow/history_event.rb,
+  lib/aws/simple_workflow/history_event_collection.rb,
+  lib/aws/simple_workflow/option_formatters.rb,
+  lib/aws/simple_workflow/request.rb, lib/aws/simple_workflow/resource.rb,
+  lib/aws/simple_workflow/type.rb, lib/aws/simple_workflow/type_collection.rb,
+  lib/aws/simple_workflow/workflow_execution.rb,
+  lib/aws/simple_workflow/workflow_execution_collection.rb,
+  lib/aws/simple_workflow/workflow_type.rb,
+  lib/aws/simple_workflow/workflow_type_collection.rb, lib/aws/sns.rb,
+  lib/aws/sns/policy.rb, lib/aws/sns/subscription.rb, lib/aws/sns/topic.rb,
+  lib/aws/sns/topic_collection.rb, lib/aws/sqs/queue.rb,
+  lib/aws/sqs/queue_collection.rb, lib/aws/sqs/received_message.rb,
+  lib/aws/sts/client.rb, lib/net/http/connection_pool/connection.rb,
+  spec/aws/auto_scaling/activity_collection_spec.rb,
+  spec/aws/auto_scaling/group_collection_spec.rb,
+  spec/aws/auto_scaling/group_spec.rb,
+  spec/aws/auto_scaling/instance_collection_spec.rb,
+  spec/aws/auto_scaling/instance_spec.rb,
+  spec/aws/auto_scaling/launch_configuration_collection_spec.rb,
+  spec/aws/auto_scaling/launch_configuration_spec.rb,
+  spec/aws/auto_scaling/notification_configuration_collection_spec.rb,
+  spec/aws/auto_scaling/notification_configuration_spec.rb,
+  spec/aws/auto_scaling/request_spec.rb,
+  spec/aws/auto_scaling/scaling_policy_colletion_spec.rb,
+  spec/aws/auto_scaling/scaling_policy_spec.rb,
+  spec/aws/auto_scaling/scheduled_action_collection_spec.rb,
+  spec/aws/auto_scaling/scheduled_action_spec.rb,
+  spec/aws/cloud_formation/request_spec.rb,
+  spec/aws/cloud_formation/stack_spec.rb,
+  spec/aws/cloud_formation/stack_summary_collection_spec.rb,
+  spec/aws/cloud_formation_spec.rb,
+  spec/aws/cloud_watch/alarm_collection_spec.rb,
+  spec/aws/cloud_watch/alarm_history_item_collection_spec.rb,
+  spec/aws/cloud_watch/alarm_history_item_spec.rb,
+  spec/aws/cloud_watch/metric_alarm_collection_spec.rb,
+  spec/aws/config_spec.rb, spec/aws/core/cacheable_spec.rb,
+  spec/aws/core/collection/simple_spec.rb,
+  spec/aws/core/collection/with_next_token_spec.rb,
+  spec/aws/core/configuration_spec.rb,
+  spec/aws/core/credential_providers_spec.rb,
+  spec/aws/core/http/request_param_spec.rb,
+  spec/aws/core/http/request_spec.rb, spec/aws/core/http/response_spec.rb,
+  spec/aws/core/indifferent_hash_spec.rb, spec/aws/core/log_formatter_spec.rb,
+  spec/aws/core/policy_spec.rb, spec/aws/dynamo_db/batch_write_spec.rb,
+  spec/aws/dynamo_db/request_spec.rb, spec/aws/dynamo_db/table_spec.rb,
+  spec/aws/ec2/attachment_spec.rb, spec/aws/ec2/client/xml_spec.rb,
+  spec/aws/ec2/client_spec.rb,
+  spec/aws/ec2/customer_gateway_collection_spec.rb,
+  spec/aws/ec2/customer_gateway_spec.rb,
+  spec/aws/ec2/dhcp_options_collection_spec.rb,
+  spec/aws/ec2/dhcp_options_spec.rb, spec/aws/ec2/elastic_ip_spec.rb,
+  spec/aws/ec2/export_task_spec.rb, spec/aws/ec2/image_spec.rb,
+  spec/aws/ec2/instance_collection_spec.rb,
+  spec/aws/ec2/internet_gateway_collection_spec.rb,
+  spec/aws/ec2/internet_gateway_spec.rb, spec/aws/ec2/key_pair_spec.rb,
+  spec/aws/ec2/network_acl_collection_spec.rb,
+  spec/aws/ec2/network_acl_spec.rb, spec/aws/ec2/network_interface_spec.rb,
+  spec/aws/ec2/request_spec.rb,
+  spec/aws/ec2/reserved_instances_offering_spec.rb,
+  spec/aws/ec2/route_table_collection_spec.rb,
+  spec/aws/ec2/route_table_spec.rb,
+  spec/aws/ec2/security_group/egress_ip_permission_collection_spec.rb,
+  spec/aws/ec2/security_group/ip_permission_collection_spec.rb,
+  spec/aws/ec2/security_group/ip_permission_spec.rb,
+  spec/aws/ec2/security_group_spec.rb, spec/aws/ec2/subnet_collection_spec.rb,
+  spec/aws/ec2/subnet_spec.rb, spec/aws/ec2/tag_collection_spec.rb,
+  spec/aws/ec2/tag_spec.rb, spec/aws/ec2/vpc_spec.rb,
+  spec/aws/ec2/vpn_connection_collection_spec.rb,
+  spec/aws/ec2/vpn_connection_spec.rb, spec/aws/ec2/vpn_gateway_spec.rb,
+  spec/aws/elb/availability_zone_collection_spec.rb,
+  spec/aws/elb/backend_server_policy_collection_spec.rb,
+  spec/aws/elb/instance_collection_spec.rb,
+  spec/aws/elb/listener_collection_spec.rb,
+  spec/aws/elb/load_balancer_policy_collection_spec.rb,
+  spec/aws/elb/load_balancer_policy_spec.rb,
+  spec/aws/elb/load_balancer_spec.rb, spec/aws/elb_spec.rb,
+  spec/aws/errors_spec.rb, spec/aws/iam/access_key_collection_spec.rb,
+  spec/aws/iam/access_key_spec.rb, spec/aws/iam/mfa_device_collection_spec.rb,
+  spec/aws/iam/mfa_device_spec.rb, spec/aws/iam/request_spec.rb,
+  spec/aws/iam/server_certificate_collection_spec.rb,
+  spec/aws/iam/server_certificate_spec.rb,
+  spec/aws/iam/signing_certificate_collection_spec.rb,
+  spec/aws/iam/signing_certificate_spec.rb, spec/aws/iam/user_policy_spec.rb,
+  spec/aws/iam/user_spec.rb,
+  spec/aws/iam/virtual_mfa_device_collection_spec.rb,
+  spec/aws/iam/virtual_mfa_device_spec.rb, spec/aws/rails_spec.rb,
+  spec/aws/record/attributes_spec.rb,
+  spec/aws/record/hash_model/class_methods_spec.rb,
+  spec/aws/record/model/attribute_deletion_spec.rb,
+  spec/aws/record/model/class_methods_spec.rb,
+  spec/aws/record/model/dirty_tracking_spec.rb,
+  spec/aws/record/model/empty_records_spec.rb,
+  spec/aws/record/model/errors_spec.rb,
+  spec/aws/record/model/instance_methods_spec.rb,
+  spec/aws/record/model/optimistic_locking_spec.rb,
+  spec/aws/record/model/scope_spec.rb,
+  spec/aws/record/model/timestamps_spec.rb,
+  spec/aws/record/validations/acceptance_spec.rb,
+  spec/aws/record/validations/confirmation_spec.rb,
+  spec/aws/record/validations/count_spec.rb,
+  spec/aws/record/validations/exclusion_spec.rb,
+  spec/aws/record/validations/format_spec.rb,
+  spec/aws/record/validations/inclusion_spec.rb,
+  spec/aws/record/validations/length_spec.rb,
+  spec/aws/record/validations/numericality_spec.rb,
+  spec/aws/route_53/client_spec.rb, spec/aws/s3/bucket_collection_spec.rb,
+  spec/aws/s3/bucket_version_collection_spec.rb,
+  spec/aws/s3/client/xml_spec.rb, spec/aws/s3/object_collection_spec.rb,
+  spec/aws/s3/object_metadata_spec.rb,
+  spec/aws/s3/object_version_collection_spec.rb,
+  spec/aws/s3/object_version_spec.rb, spec/aws/s3/policy_spec.rb,
+  spec/aws/s3/request_spec.rb, spec/aws/s3_spec.rb,
+  spec/aws/simple_db/attribute_collection_spec.rb,
+  spec/aws/simple_db/attribute_spec.rb, spec/aws/simple_db/client_spec.rb,
+  spec/aws/simple_db/domain_collection_spec.rb,
+  spec/aws/simple_db/domain_metadata_spec.rb,
+  spec/aws/simple_db/domain_spec.rb, spec/aws/simple_db/errors_spec.rb,
+  spec/aws/simple_db/item_collection_spec.rb,
+  spec/aws/simple_db/item_data_spec.rb, spec/aws/simple_db/item_spec.rb,
+  spec/aws/simple_db/request_spec.rb, spec/aws/simple_db_spec.rb,
+  spec/aws/simple_email_service/email_address_collection_spec.rb,
+  spec/aws/simple_email_service/identity_collection_spec.rb,
+  spec/aws/simple_email_service/quotas_spec.rb,
+  spec/aws/simple_email_service/request_spec.rb,
+  spec/aws/simple_email_service_spec.rb,
+  spec/aws/simple_workflow/activity_task_collection_spec.rb,
+  spec/aws/simple_workflow/activity_task_spec.rb,
+  spec/aws/simple_workflow/activity_type_collection_spec.rb,
+  spec/aws/simple_workflow/activity_type_spec.rb,
+  spec/aws/simple_workflow/count_spec.rb,
+  spec/aws/simple_workflow/decision_task_collection_spec.rb,
+  spec/aws/simple_workflow/decision_task_spec.rb,
+  spec/aws/simple_workflow/domain_collection_spec.rb,
+  spec/aws/simple_workflow/domain_spec.rb,
+  spec/aws/simple_workflow/history_event_collection_spec.rb,
+  spec/aws/simple_workflow/history_event_spec.rb,
+  spec/aws/simple_workflow/workflow_execution_collection_spec.rb,
+  spec/aws/simple_workflow/workflow_execution_spec.rb,
+  spec/aws/simple_workflow/workflow_type_collection_spec.rb,
+  spec/aws/simple_workflow/workflow_type_spec.rb,
+  spec/aws/simple_workflow_spec.rb, spec/aws/sns/subscription_spec.rb,
+  spec/aws/sns/topic_spec.rb, spec/aws/sns_spec.rb,
+  spec/aws/sqs/queue_collection_spec.rb, spec/aws/sqs/queue_spec.rb,
+  spec/aws/sqs/received_message_spec.rb,
+  spec/aws/sqs/received_sns_message_spec.rb, spec/aws/sts/client_spec.rb,
+  spec/aws_spec.rb, spec/dummy_server.rb, spec/mock_ec2_metadata_server.rb,
+  spec/net/http/connection_pool/connection_spec.rb,
+  spec/net/http/connection_pool/live_tests_spec.rb,
+  spec/net/http/connection_pool_spec.rb, spec/shared/aws_record_examples.rb,
+  spec/shared/ec2/describe_call_attribute_examples.rb,
+  spec/shared/ec2/fitlered_collection_examples.rb,
+  spec/shared/ec2/model_object_examples.rb,
+  spec/shared/ec2/tagged_collection_examples.rb,
+  spec/shared/ec2/tagged_item_examples.rb, spec/shared/policy_examples.rb,
+  spec/shared/record/abstract_base_examples.rb,
+  spec/shared/record/optimistic_lockable_examples.rb,
+  spec/shared/record/shardable_examples.rb,
+  spec/shared/record/validation_examples.rb,
+  spec/shared/s3/model_object_examples.rb,
+  spec/shared/signature/version_4_examples.rb,
+  spec/shared/simple_db/accepts_consistent_read_option_examples.rb,
+  spec/shared/simple_db/model_object_examples.rb,
+  spec/shared/simple_workflow/type_collection_examples.rb,
+  spec/shared/simple_workflow/type_examples.rb,
+  spec/shared/sns/has_delivery_policy_examples.rb,
+  spec/shared/sqs/model_object_examples.rb: Removed trailing whitespace from
+  the end of lines.
+
+  * lib/aws/record.rb, lib/aws/record/abstract_base.rb,
+  lib/aws/record/hash_model.rb, lib/aws/record/hash_model/attributes.rb,
+  lib/aws/record/model.rb, lib/aws/record/model/attributes.rb,
+  lib/aws/record/validations.rb, lib/aws/record/validators/acceptance.rb,
+  lib/aws/record/validators/block.rb,
+  lib/aws/record/validators/confirmation.rb,
+  lib/aws/record/validators/count.rb, lib/aws/record/validators/exclusion.rb,
+  lib/aws/record/validators/format.rb, lib/aws/record/validators/inclusion.rb,
+  lib/aws/record/validators/length.rb, lib/aws/record/validators/method.rb,
+  lib/aws/record/validators/numericality.rb,
+  lib/aws/record/validators/presence.rb: Updated AWS::Record to use autoload
+  instead of explicit require statements to support eager autoloading.
+
+  * lib/aws/rails.rb: add to_s method, because Rails.version of edge rails is
+  Gem::Version object
+
+2013-03-29 James Miller <bensie@gmail.com>
+
+  * lib/aws/elb/load_balancer_collection.rb: Spelling error in
+  load_balancer_collection.rb
+2013-03-22 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/autoloader.rb: Removed the legacy autoloader module.
+
+  * lib/aws-sdk.rb, lib/aws/auto_scaling.rb, lib/aws/cloud_formation.rb,
+  lib/aws/cloud_front.rb, lib/aws/cloud_search.rb, lib/aws/cloud_watch.rb,
+  lib/aws/core.rb, lib/aws/core/collection.rb, lib/aws/data_pipeline.rb,
+  lib/aws/dynamo_db.rb, lib/aws/ec2.rb, lib/aws/ec2/security_group.rb,
+  lib/aws/elastic_beanstalk.rb, lib/aws/elastic_transcoder.rb,
+  lib/aws/elasticache.rb, lib/aws/elb.rb, lib/aws/emr.rb, lib/aws/glacier.rb,
+  lib/aws/iam.rb, lib/aws/iam/collection.rb, lib/aws/import_export.rb,
+  lib/aws/ops_works.rb, lib/aws/rds.rb, lib/aws/record.rb,
+  lib/aws/redshift.rb, lib/aws/route_53.rb, lib/aws/s3.rb,
+  lib/aws/s3/client.rb, lib/aws/s3/tree.rb, lib/aws/simple_db.rb,
+  lib/aws/simple_email_service.rb, lib/aws/simple_workflow.rb, lib/aws/sns.rb,
+  lib/aws/sqs.rb, lib/aws/storage_gateway.rb, lib/aws/sts.rb: Removed the
+  usage of AWS.register_autoloads, now using vanilla autoload.
+
+  * lib/aws/core.rb: Replaced the AWS.eager_autoload! implementation.
+
+  This implementation no longer relies on the AWS.register_autoloads
+  hook, runs faster and is simpler.
+
+2013-03-23 ebargtuo <ebargtuo@gmx.it>
+
+  * lib/aws/s3/client.rb, spec/aws/s3/client_spec.rb: Added additional header
+  (expires) returned by AWS::S3::Client#head_object and #get_object
+
+2013-03-21 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/s3/bucket.rb: No longer catching all 400-level errors when calling
+  Bucket#exists?
+
+  Fixes #205
+
+  * lib/aws/core/configuration.rb: Resolved a thready-safety issue with
+  AWS::Core::Configuration.
+
+  References #90
+
+2013-03-20 Loren Segal <lsegal@amazon.com>
+
+  * features/support/common.rb: Only load config file if it exists
+
+  * spec/aws/cloud_formation_spec.rb: Update CloudFormation specs to reflect
+  new API
+
+2013-03-19 Patrick Cheng <patrick@mellmo.com>
+
+  * lib/aws/cloud_formation.rb: parameters was not being passed
+
+  * lib/aws/sqs/queue.rb: Corrected typo in SQS::Queue documentation.
+
+2013-03-18 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/auto_scaling.rb, lib/aws/auto_scaling/group.rb,
+  lib/aws/auto_scaling/group_collection.rb, lib/aws/core/log_formatter.rb,
+  lib/aws/ec2/attachment.rb, lib/aws/ec2/availability_zone.rb,
+  lib/aws/ec2/region.rb, lib/aws/ec2/region_collection.rb,
+  lib/aws/ec2/volume.rb, lib/aws/ec2/volume_collection.rb,
+  lib/aws/elb/availability_zone_collection.rb, lib/aws/elb/load_balancer.rb,
+  lib/aws/elb/load_balancer_collection.rb, lib/aws/sns/topic.rb,
+  lib/aws/sns/topic_collection.rb, lib/aws/sqs/queue_collection.rb: Now using
+  us-west-2 as the default sample region for documentation.
+
+2013-03-15 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/rds/db_instance.rb, spec/aws/rds/db_instance_spec.rb: Added
+  #vpc_id and #vpc methods to AWS::RDS::DbInstance.
+
+  Fixes #188
+
+  * lib/aws/cloud_formation/client.rb, lib/aws/cloud_front/client.rb,
+  lib/aws/cloud_search/client.rb, lib/aws/data_pipeline/client.rb,
+  lib/aws/dynamo_db/client.rb, lib/aws/ec2/client.rb,
+  lib/aws/elastic_beanstalk/client.rb, lib/aws/elasticache/client.rb,
+  lib/aws/emr/client.rb, lib/aws/glacier/client.rb, lib/aws/iam/client.rb,
+  lib/aws/import_export/client.rb, lib/aws/ops_works/client.rb,
+  lib/aws/rds/client.rb, lib/aws/redshift/client.rb,
+  lib/aws/route_53/client.rb, lib/aws/simple_email_service/client.rb,
+  lib/aws/simple_workflow/client.rb, lib/aws/storage_gateway/client.rb: Added
+  valid values to the documentation for each service client.
+
+  * lib/aws/api_config/OpsWorks-2013-02-18.yml: Resolved an issue with the
+  OpsWorks API configuration.
+
+  One of the input params was incorrectly inflected.
+
+2013-03-14 Trevor Rowe <trevorrowe@gmail.com>
+
+  * lib/aws/core/xml/grammar.rb: Added a rule to ignore enum traits.
+
+  * lib/aws/cloud_watch/client.rb: Added documentation for for
+  AWS::CloudWatch::Client operations.
+
+2013-03-13 Trevor Rowe <trevorrowe@gmail.com>
+
+  * ChangeLog, lib/aws/version.rb: Bump version to 1.8.5
+
+  * lib/aws/core.rb, lib/aws/core/configuration.rb: Changed String to Boolean
+  with type of:dynamo_db_retry_throughput_errors
+
 2013-03-12 Trevor Rowe <trevorrowe@gmail.com>
 
   * lib/aws/api_config/EC2-2013-02-01.yml, lib/aws/ec2/client.rb: Fixed an
@@ -15,11 +1592,6 @@
 
   * lib/aws/s3/s3_object.rb: Added missing documentation for the :expires
   option to S3Object#write.
-
-2013-03-13 Mahito <earthdragon77@gmail.com>
-
-  * lib/aws/core.rb, lib/aws/core/configuration.rb: Changed String to Boolean
-  with type of:dynamo_db_retry_throughput_errors
 
 2013-03-11 Trevor Rowe <trevorrowe@gmail.com>
 
@@ -1636,6 +3208,18 @@
   * lib/aws/s3.rb: Fix S3 doc example
 
   There was a duplicate each in L101 that caused this code example to break.
+2012-12-29 Alessandro Diaferia <alediaferia@gmail.com>
+
+  * lib/aws/core/policy.rb: fix typo
+
+  * lib/aws/core/policy.rb: fix json generation
+
+  * lib/aws/core/policy.rb: fix alias
+
+  * lib/aws/core/policy.rb: fix NotResource case
+
+  * lib/aws/core/policy.rb: add support for excluded resources
+
 2012-12-21 Trevor Rowe <trevrowe@amazon.com>
 
   * lib/aws/data_pipeline/client.rb: Updated data pipeline documentation to

@@ -15,7 +15,7 @@ module AWS
   class S3
     class Client < Core::Client
 
-      # @private
+      # @api private
       module XML
 
         BaseGrammar = Core::XML::Grammar.new({}, :inflect_rename => true)
@@ -141,7 +141,7 @@ module AWS
             element("DeleteMarker") { boolean_value }
             list
           end
-          element("Error") { list; rename(:errors) }  
+          element("Error") { list; rename(:errors) }
         end
 
         CompleteMultipartUpload = BaseGrammar.customize
@@ -222,6 +222,16 @@ module AWS
           end
           element "RoutingRules" do
             list("RoutingRule")
+          end
+        end
+
+        CopyPart = BaseGrammar.customize do
+          element "ETag" do
+            rename :etag
+          end
+          element "LastModified" do
+            datetime_value
+            rename :last_modified
           end
         end
 

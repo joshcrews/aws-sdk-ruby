@@ -11,13 +11,11 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-require 'net/http/connection_pool'
-
 module AWS
   module Core
     module Http
 
-      # = NetHttpHandler
+      # # NetHttpHandler
       #
       # This is the default HTTP handler for the aws-sdk gem.  It uses
       # Ruby's Net::HTTP to make requests.  It uses persistent connections
@@ -25,7 +23,7 @@ module AWS
       #
       class NetHttpHandler
 
-        # @private
+        # @api private
         PASS_THROUGH_ERRORS = [
           NoMethodError, FloatDomainError, TypeError, NotImplementedError,
           SystemExit, Interrupt, SyntaxError, RangeError, NoMemoryError,
@@ -34,12 +32,12 @@ module AWS
           SystemStackError, RegexpError, IndexError,
         ]
 
-        # (see Net::HTTP::ConnectionPool.new)
+        # (see ConnectionPool.new)
         def initialize options = {}
-          @pool = Net::HTTP::ConnectionPool.new(options)
+          @pool = ConnectionPool.new(options)
         end
 
-        # @return [Net::HTTP::ConnectionPool]
+        # @return [ConnectionPool]
         attr_reader :pool
 
         # Given a populated request object and an empty response object,
@@ -49,28 +47,24 @@ module AWS
         # @param [Response] response
         # @return [nil]
         def handle request, response, &read_block
-
-          options = {}
-          options[:port] = request.port
-          options[:ssl] = request.use_ssl?
-          options[:proxy_uri] = request.proxy_uri
-          options[:ssl_verify_peer] = request.ssl_verify_peer?
-          options[:ssl_ca_file] = request.ssl_ca_file if request.ssl_ca_file
-          options[:ssl_ca_path] = request.ssl_ca_path if request.ssl_ca_path
-
           begin
 
-            connection = pool.connection_for(request.host, options)
-            connection.read_timeout = request.read_timeout
+            @pool.session_for(request.endpoint) do |http|
 
-            connection.request(build_net_http_request(request)) do |http_resp|
-              response.status = http_resp.code.to_i
-              response.headers = http_resp.to_hash
-              if block_given? and response.status < 300
-                http_resp.read_body(&read_block)
-              else
-                response.body = http_resp.read_body
+              http.read_timeout = request.read_timeout
+              http.continue_timeout = request.continue_timeout if
+                http.respond_to?(:continue_timeout=)
+
+              http.request(build_net_http_request(request)) do |net_http_resp|
+                response.status = net_http_resp.code.to_i
+                response.headers = net_http_resp.to_hash
+                if block_given? and response.status < 300
+                  net_http_resp.read_body(&read_block)
+                else
+                  response.body = net_http_resp.read_body
+                end
               end
+
             end
 
           # The first rescue clause is required because Timeout::Error is
@@ -83,9 +77,7 @@ module AWS
           rescue Exception => error
             response.network_error = error
           end
-
           nil
-
         end
 
         protected
@@ -96,10 +88,15 @@ module AWS
         # @return [Net::HTTPRequest]
         def build_net_http_request request
 
-          # Net::HTTP adds a content-type header automatically unless its set
-          # and this messes with request signature signing.  Also, it expects
-          # all header values to be strings (it call strip on them).
-          headers = { 'content-type' => '' }
+          # Net::HTTP adds a content-type (1.8.7+) and accept-encoding (2.0.0+)
+          # to the request if these headers are not set.  Setting a default
+          # empty value defeats this.
+          #
+          # Removing these are necessary for most services to no break request
+          # signatures as well as dynamodb crc32 checks (these fail if the
+          # response is gzipped).
+          headers = { 'content-type' => '', 'accept-encoding' => '' }
+
           request.headers.each_pair do |key,value|
             headers[key] = value.to_s
           end

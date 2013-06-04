@@ -15,7 +15,7 @@ module AWS
   module Core
     module XML
 
-      # @private
+      # @api private
       module FrameStack
 
         # @param [Hash] rules A hash of parser rules.  These
@@ -36,7 +36,7 @@ module AWS
           sax_parse(xml)
           @frame.value
         end
-    
+
         # Increase the frame stack level by one.
         # @param [String] element_name The name of the xml opening tag.
         # @param [Hash] attributes A hash of xml element attributes.

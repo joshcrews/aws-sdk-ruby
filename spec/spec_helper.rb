@@ -13,11 +13,25 @@
 
 begin
   require 'simplecov'
-  SimpleCov.start
+  SimpleCov.start do
+    add_filter 'spec/'
+    add_filter 'vendor/'
+
+    lib_directories = Dir.glob('lib/aws/*/').map{|dir_name| dir_name[0..-2]}
+    lib_directories.each do |dir|
+      add_group dir.split('/').last, dir
+    end
+  end
 rescue LoadError
 end if ENV['COVERAGE']
 
 $: << File.join(File.dirname(File.dirname(__FILE__)), "lib")
+
+%w(AWS AMAZON).each do |prefix|
+  ENV.delete("#{prefix}_REGION")
+  ENV.delete("#{prefix}_ACCESS_KEY_ID")
+  ENV.delete("#{prefix}_SECRET_ACCESS_KEY")
+end
 
 require 'rspec'
 require 'aws-sdk'

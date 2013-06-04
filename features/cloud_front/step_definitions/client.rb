@@ -38,7 +38,7 @@ When /^I use the client to create a distrubtion for a non\-existent origin$/ do
         :caller_reference => '123',
         :aliases => {
           :quantity => 0,
-        }, 
+        },
         :default_root_object => '/',
         :origins => {
           :quantity => 0,
@@ -68,4 +68,10 @@ When /^I use the client to create a distrubtion for a non\-existent origin$/ do
     })
   rescue => @error
   end
+end
+
+Then(/^I should be able to list distributions with session credentials$/) do
+  client = AWS::CloudFront::Client.new(@session.credentials)
+  resp = client.list_distributions
+  resp.data[:items].should be_an(Array)
 end
